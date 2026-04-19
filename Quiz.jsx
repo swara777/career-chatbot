@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { saveQuizHistory } from './supabaseQuizService';
 
 const quizQuestions = {
   Tech: [
@@ -8,12 +8,7 @@ const quizQuestions = {
       id: 1,
       question: 'How comfortable are you with coding?',
       careerMatches: { 'Software Engineer': 5, 'Data Scientist': 4, 'Entrepreneur': 3 },
-      options: [
-        'Very comfortable',
-        'Somewhat comfortable',
-        'Learning',
-        'Not interested',
-      ],
+      options: ['Very comfortable', 'Somewhat comfortable', 'Learning', 'Not interested'],
     },
     {
       id: 2,
@@ -27,12 +22,7 @@ const quizQuestions = {
       id: 3,
       question: 'How creative are you?',
       careerMatches: { 'Graphic Designer': 5, 'Content Writer': 4, 'Lawyer': 2 },
-      options: [
-        'Very creative',
-        'Moderately creative',
-        'Somewhat creative',
-        'Not creative',
-      ],
+      options: ['Very creative', 'Moderately creative', 'Somewhat creative', 'Not creative'],
     },
   ],
   Medical: [
@@ -55,11 +45,7 @@ const quizQuestions = {
     {
       id: 6,
       question: 'How good are you with numbers and finance?',
-      careerMatches: {
-        'Investment Banker': 5,
-        'Chartered Accountant (CA)': 5,
-        'Entrepreneur': 3,
-      },
+      careerMatches: { 'Investment Banker': 5, 'Chartered Accountant (CA)': 5, 'Entrepreneur': 3 },
       options: ['Excellent', 'Good', 'Average', 'Poor'],
     },
   ],
@@ -76,12 +62,7 @@ const quizQuestions = {
       id: 8,
       question: 'Would you like to start your own business?',
       careerMatches: { 'Entrepreneur': 5, 'Investment Banker': 3, 'Content Writer': 2 },
-      options: [
-        'Definitely',
-        'Maybe',
-        'Not sure',
-        'No',
-      ],
+      options: ['Definitely', 'Maybe', 'Not sure', 'No'],
     },
   ],
   Science: [
@@ -102,19 +83,11 @@ const Quiz = () => {
   const [results, setResults] = useState(null);
   const [careerScores, setCareerScores] = useState({});
 
-  const allQuestions = [];
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
-
-      // Generate questions based on user interests
-      parsedUser.interests.forEach((interest) => {
-        if (quizQuestions[interest]) {
-          allQuestions.push(...quizQuestions[interest]);
-        }
-      });
     }
   }, []);
 
@@ -167,16 +140,15 @@ const Quiz = () => {
       })),
     };
 
-    // Save to database
+    // Save to Supabase
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/quiz/submit`,
-        { quizResult },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const userData = localStorage.getItem('user');
+      const parsedUser = JSON.parse(userData);
+
+      await saveQuizHistory(parsedUser.id, {
+        quiz_result: quizResult,
+        date: new Date().toISOString(),
+      });
     } catch (err) {
       console.error('Error saving quiz result:', err);
     }
