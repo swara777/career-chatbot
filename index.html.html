@@ -1,0 +1,3624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PathFinder — AI Career Guidance Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050508;
+  --bg2: #0d0d14;
+  --bg3: #12121c;
+  --card: #111119;
+  --card2: #181824;
+  --border: rgba(255,255,255,0.05);
+  --border2: rgba(255,255,255,0.1);
+  --border3: rgba(255,255,255,0.18);
+  --text: #eeeef5;
+  --text2: #8888aa;
+  --text3: #555577;
+  --accent: #7c6dfa;
+  --accent2: #b8adff;
+  --teal: #00d4b4;
+  --amber: #f5a623;
+  --coral: #ff6b6b;
+  --pink: #ff79c6;
+  --green: #00e5a0;
+  --blue: #4fc3f7;
+  --r: 14px;
+  --r2: 20px;
+  --r3: 28px;
+  --nav-h: 64px;
+  --sidebar-w: 260px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border3); border-radius: 3px; }
+
+/* ── SCREENS ── */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ── NOISE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.4;
+}
+
+/* ═══════════════════════════════════════
+   LOGIN / AUTH SCREEN
+═══════════════════════════════════════ */
+#screen-login {
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  position: relative;
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124,109,250,0.18) 0%, transparent 60%);
+}
+
+.login-glow {
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,109,250,0.12) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.login-wrap {
+  display: flex;
+  gap: 60px;
+  align-items: center;
+  width: 100%;
+  max-width: 1000px;
+  padding: 40px 32px;
+  position: relative;
+  z-index: 2;
+}
+
+.login-brand { flex: 1; }
+.login-brand-logo {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 52px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff 0%, var(--accent2) 50%, var(--teal) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  margin-bottom: 14px;
+}
+.login-brand-tagline {
+  font-size: 18px;
+  color: var(--text2);
+  line-height: 1.6;
+  max-width: 380px;
+}
+.login-brand-features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 32px;
+}
+.lbf-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text2);
+}
+.lbf-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.login-box {
+  width: 420px;
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: var(--r3);
+  padding: 40px;
+  flex-shrink: 0;
+}
+.lb-title {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.lb-sub { font-size: 14px; color: var(--text2); margin-bottom: 28px; }
+
+.tabs {
+  display: flex;
+  background: var(--bg3);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 24px;
+  gap: 4px;
+}
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 9px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tab-btn.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(124,109,250,0.4);
+}
+
+.form-group { margin-bottom: 16px; }
+.form-label {
+  font-size: 12px;
+  color: var(--text2);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+.form-input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  transition: border-color 0.2s;
+  outline: none;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-input::placeholder { color: var(--text3); }
+
+.form-select {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  appearance: none;
+}
+.form-select:focus { border-color: var(--accent); }
+.form-select option { background: var(--bg3); }
+
+.btn-primary {
+  width: 100%;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-family: 'Clash Display', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+  margin-top: 4px;
+}
+.btn-primary:hover {
+  background: #6b5ce7;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(124,109,250,0.4);
+}
+.btn-secondary {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 11px 20px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { background: var(--card2); border-color: var(--border3); }
+
+.form-err { font-size: 12px; color: var(--coral); margin-top: 8px; display: none; }
+
+/* ═══════════════════════════════════════
+   MAIN APP LAYOUT
+═══════════════════════════════════════ */
+#screen-app {
+  flex-direction: row;
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0;
+  height: 100vh;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  font-family: 'Clash Display', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff 0%, var(--accent2) 60%, var(--teal) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sidebar-user {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.user-avatar {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--teal));
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; color: #fff;
+  flex-shrink: 0;
+}
+.user-info-name { font-size: 14px; font-weight: 600; line-height: 1.2; }
+.user-info-grade { font-size: 12px; color: var(--text2); }
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-section-label {
+  font-size: 10px;
+  color: var(--text3);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 8px 8px 4px;
+  margin-top: 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 14px;
+  color: var(--text2);
+  font-weight: 500;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active {
+  background: rgba(124,109,250,0.12);
+  color: var(--accent2);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.nav-item-icon { font-size: 17px; width: 20px; text-align: center; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+}
+
+.sidebar-bottom {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ── MAIN CONTENT ── */
+.main-content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  height: var(--nav-h);
+  background: rgba(5,5,8,0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 32px;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  flex-shrink: 0;
+}
+.topbar-title {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+}
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 8px 16px;
+  width: 280px;
+  transition: border-color 0.2s;
+}
+.search-bar:focus-within { border-color: var(--accent); }
+.search-bar input {
+  background: none;
+  border: none;
+  outline: none;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  width: 100%;
+}
+.search-bar input::placeholder { color: var(--text3); }
+
+/* ── PAGES ── */
+.page { display: none; flex: 1; overflow-y: auto; }
+.page.active { display: block; }
+
+.page-body { padding: 32px; max-width: 1400px; }
+
+/* ═══════════════════════════════════════
+   HOME / ONBOARDING
+═══════════════════════════════════════ */
+.onboard-wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 60px 32px;
+}
+.onboard-step { display: none; }
+.onboard-step.active { display: block; }
+
+.step-indicator {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+.step-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border3);
+  transition: all 0.3s;
+}
+.step-dot.active { background: var(--accent); box-shadow: 0 0 8px var(--accent); width: 24px; border-radius: 4px; }
+.step-dot.done { background: var(--green); }
+
+.onboard-title {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 12px;
+}
+.onboard-sub { font-size: 16px; color: var(--text2); margin-bottom: 36px; line-height: 1.6; }
+
+.grade-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.grade-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--r2);
+  padding: 20px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.grade-card:hover { border-color: var(--border2); background: var(--card2); }
+.grade-card.selected { border-color: var(--accent); background: rgba(124,109,250,0.1); }
+.grade-card-emoji { font-size: 28px; margin-bottom: 8px; }
+.grade-card-label { font-size: 13px; font-weight: 600; }
+.grade-card-sub { font-size: 11px; color: var(--text2); margin-top: 3px; }
+
+.interest-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.interest-chip {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--r2);
+  padding: 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.interest-chip:hover { border-color: var(--border2); }
+.interest-chip.selected { border-color: var(--accent); background: rgba(124,109,250,0.1); }
+.interest-chip-emoji { font-size: 22px; flex-shrink: 0; }
+.interest-chip-name { font-size: 14px; font-weight: 600; }
+.interest-chip-count { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.interest-check {
+  margin-left: auto;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.interest-chip.selected .interest-check { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ═══════════════════════════════════════
+   CAREERS EXPLORER
+═══════════════════════════════════════ */
+.careers-hero {
+  background: linear-gradient(135deg, rgba(124,109,250,0.08) 0%, rgba(0,212,180,0.05) 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 40px 32px 32px;
+}
+.careers-hero h1 {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.careers-hero p { font-size: 15px; color: var(--text2); margin-bottom: 24px; }
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.filter-chip {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 99px;
+  padding: 7px 16px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-chip:hover { color: var(--text); border-color: var(--border3); }
+.filter-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.careers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+  padding: 28px 32px;
+}
+
+.career-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.career-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--cc-color, var(--accent));
+  transform: scaleX(0);
+  transition: transform 0.3s;
+}
+.career-card:hover { border-color: var(--border2); transform: translateY(-3px); box-shadow: 0 16px 48px rgba(0,0,0,0.5); }
+.career-card:hover::before { transform: scaleX(1); }
+
+.cc-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+.cc-emoji { font-size: 36px; line-height: 1; }
+.cc-demand {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 99px;
+  letter-spacing: 0.3px;
+}
+.demand-vhigh { background: rgba(0,229,160,0.12); color: var(--green); }
+.demand-high { background: rgba(124,109,250,0.12); color: var(--accent2); }
+.demand-med { background: rgba(245,166,35,0.12); color: var(--amber); }
+.demand-grow { background: rgba(79,195,247,0.12); color: var(--blue); }
+
+.cc-title { font-family: 'Clash Display', sans-serif; font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.cc-field { font-size: 12px; color: var(--text2); margin-bottom: 12px; }
+.cc-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.cc-tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-weight: 500;
+  background: var(--bg3);
+  color: var(--text2);
+}
+.cc-footer { display: flex; align-items: center; justify-content: space-between; }
+.cc-salary { font-size: 13px; color: var(--green); font-weight: 600; }
+.cc-arrow { font-size: 16px; color: var(--text3); transition: transform 0.2s; }
+.career-card:hover .cc-arrow { transform: translateX(4px); color: var(--accent2); }
+
+/* ═══════════════════════════════════════
+   CAREER DETAIL / ROADMAP
+═══════════════════════════════════════ */
+.roadmap-hero {
+  background: linear-gradient(135deg, rgba(124,109,250,0.1), rgba(0,212,180,0.06));
+  border-bottom: 1px solid var(--border);
+  padding: 40px 40px 36px;
+}
+.roadmap-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text2);
+  cursor: pointer;
+  margin-bottom: 24px;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+}
+.roadmap-back:hover { color: var(--text); }
+
+.roadmap-header {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+}
+.rh-emoji { font-size: 64px; line-height: 1; flex-shrink: 0; }
+.rh-info { flex: 1; }
+.rh-title { font-family: 'Clash Display', sans-serif; font-size: 40px; font-weight: 700; margin-bottom: 8px; }
+.rh-desc { font-size: 16px; color: var(--text2); line-height: 1.7; margin-bottom: 16px; max-width: 640px; }
+.rh-meta { display: flex; flex-wrap: wrap; gap: 12px; }
+.rh-pill {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 99px;
+  padding: 6px 14px;
+  font-size: 13px;
+}
+.rh-pill span { color: var(--text2); }
+.rh-pill strong { color: var(--text); }
+
+.rh-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.btn-save {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-save:hover { background: var(--card2); border-color: var(--border3); }
+.btn-save.saved { background: rgba(0,229,160,0.1); border-color: var(--green); color: var(--green); }
+.btn-chat-career {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--accent);
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-chat-career:hover { background: #6b5ce7; }
+
+.roadmap-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  background: var(--bg2);
+  overflow-x: auto;
+  gap: 0;
+  flex-shrink: 0;
+}
+.rtab {
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text2);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: 'Cabinet Grotesk', sans-serif;
+}
+.rtab:hover { color: var(--text); }
+.rtab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+
+.roadmap-body { padding: 36px 40px; }
+.rtab-panel { display: none; }
+.rtab-panel.active { display: block; }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 36px; }
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 12px; top: 24px; bottom: 24px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--accent), var(--teal));
+  border-radius: 1px;
+}
+
+.tl-phase { margin-bottom: 36px; }
+.tl-phase-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent2);
+  margin-bottom: 16px;
+  padding-left: 4px;
+}
+
+.tl-item {
+  position: relative;
+  margin-bottom: 16px;
+}
+.tl-dot {
+  position: absolute;
+  left: -30px;
+  top: 18px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 3px rgba(124,109,250,0.2);
+}
+.tl-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 18px 20px;
+  transition: border-color 0.2s;
+}
+.tl-card:hover { border-color: var(--border2); }
+.tl-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.tl-card p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+/* Skills */
+.skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.skill-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px 18px;
+}
+.skill-name { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+.skill-bar { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.skill-fill { height: 100%; border-radius: 2px; background: linear-gradient(to right, var(--accent), var(--teal)); transition: width 1s ease; }
+.skill-level { font-size: 11px; color: var(--text2); margin-top: 6px; text-align: right; }
+
+/* Exams */
+.exams-list { display: flex; flex-direction: column; gap: 12px; }
+.exam-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 18px 22px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.exam-left h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.exam-left p { font-size: 13px; color: var(--text2); }
+.exam-badge { font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 99px; white-space: nowrap; }
+
+/* Courses */
+.courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.course-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 20px;
+  transition: border-color 0.2s;
+}
+.course-card:hover { border-color: var(--border2); }
+.course-type {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 99px;
+  margin-bottom: 12px;
+  display: inline-block;
+}
+.course-name { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.course-provider { font-size: 13px; color: var(--text2); margin-bottom: 10px; }
+.course-meta { display: flex; gap: 12px; font-size: 12px; color: var(--text3); }
+.course-meta span { display: flex; align-items: center; gap: 4px; }
+
+/* Jobs */
+.jobs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.job-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 18px;
+  transition: border-color 0.2s;
+}
+.job-card:hover { border-color: var(--border2); }
+.job-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.job-salary { font-size: 13px; color: var(--green); font-weight: 500; }
+
+/* Section header */
+.section-hdr {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.section-hdr h2 {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+.section-hdr::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ═══════════════════════════════════════
+   QUIZ
+═══════════════════════════════════════ */
+.quiz-wrap {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 48px 32px 80px;
+}
+
+.quiz-progress-bar {
+  height: 3px;
+  background: var(--bg3);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.quiz-progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--accent), var(--teal));
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+.quiz-progress-text {
+  font-size: 12px;
+  color: var(--text3);
+  margin-bottom: 48px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.quiz-q-num {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent2);
+  margin-bottom: 12px;
+}
+.quiz-q-text {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+.quiz-q-sub { font-size: 15px; color: var(--text2); margin-bottom: 32px; }
+
+.quiz-options { display: flex; flex-direction: column; gap: 12px; }
+.quiz-opt {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--r2);
+  padding: 20px 22px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+  font-family: 'Cabinet Grotesk', sans-serif;
+}
+.quiz-opt:hover { border-color: var(--accent); background: rgba(124,109,250,0.05); }
+.quiz-opt.selected { border-color: var(--accent); background: rgba(124,109,250,0.1); }
+.quiz-opt-emoji { font-size: 28px; width: 36px; flex-shrink: 0; }
+.quiz-opt-text { font-size: 15px; font-weight: 600; color: var(--text); }
+.quiz-opt-sub { font-size: 13px; color: var(--text2); margin-top: 2px; }
+.quiz-opt-radio {
+  margin-left: auto;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border3);
+  flex-shrink: 0;
+  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.quiz-opt.selected .quiz-opt-radio {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.quiz-opt.selected .quiz-opt-radio::after {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.quiz-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 36px;
+}
+.btn-next {
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 13px 28px;
+  font-family: 'Clash Display', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0.4;
+  pointer-events: none;
+}
+.btn-next.enabled { opacity: 1; pointer-events: auto; }
+.btn-next.enabled:hover { background: #6b5ce7; transform: translateY(-1px); }
+.btn-back {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 12px 22px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-back:hover { background: var(--card2); }
+
+/* ═══════════════════════════════════════
+   QUIZ REPORT
+═══════════════════════════════════════ */
+.report-wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px 32px 80px;
+}
+.report-hero {
+  text-align: center;
+  margin-bottom: 52px;
+}
+.report-celebration { font-size: 56px; margin-bottom: 20px; }
+.report-hero h1 {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.report-hero p { font-size: 16px; color: var(--text2); max-width: 500px; margin: 0 auto; line-height: 1.6; }
+
+.match-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 48px; }
+.match-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 26px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s;
+}
+.match-card:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+.match-rank {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.match-emoji { font-size: 40px; margin-bottom: 12px; }
+.match-title {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.match-field { font-size: 13px; color: var(--text2); margin-bottom: 14px; }
+.match-pct-bar { height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+.match-pct-fill { height: 100%; border-radius: 3px; }
+.match-pct-text { font-size: 12px; color: var(--text2); margin-bottom: 18px; }
+.btn-view-roadmap {
+  width: 100%;
+  padding: 10px;
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-view-roadmap:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.traits-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 28px;
+  margin-bottom: 24px;
+}
+.traits-card h2 {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.traits-card p { font-size: 14px; color: var(--text2); margin-bottom: 24px; }
+.traits-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.trait-row { }
+.trait-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 8px;
+}
+.trait-label strong { color: var(--text); }
+.trait-bar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.trait-fill { height: 100%; border-radius: 3px; }
+
+/* ═══════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════ */
+.dashboard-body { padding: 32px; }
+.dash-header {
+  background: linear-gradient(135deg, rgba(124,109,250,0.08), rgba(0,212,180,0.05));
+  border: 1px solid var(--border);
+  border-radius: var(--r3);
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+.dash-avatar {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--teal));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Clash Display', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.dash-info h1 {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.dash-info p { font-size: 14px; color: var(--text2); }
+.dash-stats { margin-left: auto; display: flex; gap: 24px; }
+.dstat { text-align: center; }
+.dstat-val {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+}
+.dstat-label { font-size: 12px; color: var(--text2); }
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.dash-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 24px;
+}
+.dash-card h3 {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress-milestone {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+  border-radius: 8px;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+.progress-milestone:last-child { border-bottom: none; }
+.progress-milestone:hover { background: var(--bg3); }
+.pm-icon {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.pm-done { background: rgba(0,229,160,0.12); }
+.pm-todo { background: var(--bg3); }
+.pm-label { font-size: 14px; font-weight: 500; }
+.pm-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.pm-check { margin-left: auto; font-size: 16px; }
+
+.saved-mini-grid { display: flex; flex-direction: column; gap: 10px; }
+.saved-mini {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg3);
+  border-radius: var(--r);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.saved-mini:hover { background: var(--card2); border-color: var(--border2); }
+.saved-mini-emoji { font-size: 20px; }
+.saved-mini-title { font-size: 14px; font-weight: 600; }
+.saved-mini-field { font-size: 12px; color: var(--text2); }
+.saved-mini-arr { margin-left: auto; color: var(--text3); }
+
+.quiz-history-list { display: flex; flex-direction: column; gap: 10px; }
+.qh-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg3);
+  border-radius: var(--r);
+  padding: 14px;
+}
+.qh-icon {
+  width: 36px; height: 36px;
+  background: rgba(124,109,250,0.12);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.qh-title { font-size: 14px; font-weight: 600; }
+.qh-date { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.qh-match { margin-left: auto; font-size: 13px; color: var(--green); font-weight: 600; }
+
+/* ═══════════════════════════════════════
+   CHATBOT
+═══════════════════════════════════════ */
+.chat-layout {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--nav-h));
+}
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.chat-msg { display: flex; gap: 14px; max-width: 100%; }
+.chat-msg.user { flex-direction: row-reverse; }
+
+.msg-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.msg-avatar.ai {
+  background: linear-gradient(135deg, var(--accent), var(--teal));
+}
+.msg-avatar.user-av {
+  background: var(--card2);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.msg-bubble {
+  max-width: 68%;
+  padding: 14px 18px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.msg-bubble.ai {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px 18px 18px 18px;
+}
+.msg-bubble.user-msg {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 18px 4px 18px 18px;
+}
+
+.chat-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 32px 16px;
+}
+.chat-sug {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 99px;
+  padding: 8px 16px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.chat-sug:hover { border-color: var(--accent); color: var(--accent2); }
+
+.chat-input-area {
+  border-top: 1px solid var(--border);
+  padding: 16px 32px 24px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+.chat-input {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  resize: none;
+  min-height: 52px;
+  max-height: 160px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.chat-input:focus { border-color: var(--accent); }
+.chat-input::placeholder { color: var(--text3); }
+.chat-send-btn {
+  width: 52px; height: 52px;
+  background: var(--accent);
+  border: none;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.chat-send-btn:hover { background: #6b5ce7; }
+.chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.typing-dots { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
+.typing-dots span {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text3);
+  animation: tdot 1.4s infinite ease-in-out;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tdot {
+  0%,80%,100% { transform: translateY(0); opacity: 0.4; }
+  40% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ═══════════════════════════════════════
+   COUNSELING
+═══════════════════════════════════════ */
+.counsel-body { padding: 32px; }
+.counsel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.counsel-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 28px;
+}
+.counsel-card h3 {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.counsel-card p { font-size: 14px; color: var(--text2); margin-bottom: 20px; line-height: 1.6; }
+
+.counselor-list { display: flex; flex-direction: column; gap: 12px; }
+.counselor-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg3);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: 1px solid transparent;
+}
+.counselor-item:hover { background: var(--card2); border-color: var(--border2); }
+.counselor-item.selected { border-color: var(--accent); background: rgba(124,109,250,0.08); }
+.ci-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 16px;
+  flex-shrink: 0;
+}
+.ci-name { font-size: 14px; font-weight: 600; }
+.ci-spec { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.ci-rating { margin-left: auto; font-size: 12px; color: var(--amber); }
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 16px 0;
+}
+.slot-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+.slot-btn:hover { border-color: var(--accent); color: var(--accent2); }
+.slot-btn.selected { background: rgba(124,109,250,0.15); border-color: var(--accent); color: var(--accent2); }
+
+.mode-toggle { display: flex; gap: 10px; margin: 16px 0; }
+.mode-btn {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text2);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+.mode-btn.active { background: rgba(124,109,250,0.12); border-color: var(--accent); color: var(--accent2); }
+.btn-book {
+  width: 100%;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-family: 'Clash Display', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 12px;
+}
+.btn-book:hover { background: #6b5ce7; }
+
+.instant-card {
+  grid-column: span 2;
+  background: linear-gradient(135deg, rgba(124,109,250,0.1), rgba(0,212,180,0.08));
+  border: 1px solid rgba(124,109,250,0.2);
+  border-radius: var(--r2);
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.instant-text h3 { font-family: 'Clash Display', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.instant-text p { font-size: 14px; color: var(--text2); }
+.instant-actions { display: flex; gap: 12px; flex-shrink: 0; }
+
+/* ═══════════════════════════════════════
+   PROFILE
+═══════════════════════════════════════ */
+.profile-body { padding: 32px; max-width: 720px; }
+.profile-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 28px;
+  margin-bottom: 20px;
+}
+.profile-section h3 {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 80px;
+  margin-bottom: 24px;
+}
+.profile-avatar-big {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--teal));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Clash Display', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.profile-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.interest-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.interest-edit-chip {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+  font-weight: 500;
+}
+.interest-edit-chip:hover { border-color: var(--border2); }
+.interest-edit-chip.sel { background: rgba(124,109,250,0.1); border-color: var(--accent); color: var(--accent2); }
+.btn-save-profile {
+  background: var(--accent);
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 12px;
+}
+.btn-save-profile:hover { background: #6b5ce7; }
+
+/* ═══════════════════════════════════════
+   TOAST
+═══════════════════════════════════════ */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 9999;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-width: 320px;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-left: 3px solid var(--green); }
+.toast.error { border-left: 3px solid var(--coral); }
+.toast.info { border-left: 3px solid var(--accent); }
+
+/* ── UTILS ── */
+.fade-in { animation: fadeIn 0.4s ease forwards; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text2);
+}
+.empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state p { font-size: 15px; }
+
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg3);
+  border-radius: 99px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--text2);
+}
+
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); }
+  .main-content { margin-left: 0; }
+  .dash-grid, .counsel-grid, .match-cards, .traits-grid { grid-template-columns: 1fr; }
+  .grade-grid { grid-template-columns: repeat(2, 1fr); }
+  .interest-grid { grid-template-columns: repeat(2, 1fr); }
+  .login-wrap { flex-direction: column; align-items: center; }
+  .login-brand { display: none; }
+}
+
+/* Progress ring animation */
+.progress-ring-fill {
+  transition: stroke-dashoffset 1s ease;
+}
+/* Activity card pulse for new items */
+@keyframes newItem {
+  0% { transform: scale(0.95); opacity: 0.7; }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.activity-new { animation: newItem 0.4s ease forwards; }
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════════════ -->
+<div class="screen active" id="screen-login">
+  <div class="login-glow"></div>
+  <div class="login-wrap">
+    <div class="login-brand">
+      <div class="login-brand-logo">PathFinder</div>
+      <div class="login-brand-tagline">Your AI-powered career compass — from Grade 10 to your dream job.</div>
+      <div class="login-brand-features">
+        <div class="lbf-item"><div class="lbf-dot"></div>Personalised career quiz matching your interests</div>
+        <div class="lbf-item"><div class="lbf-dot"></div>Full roadmaps with exams, courses, skills & jobs</div>
+        <div class="lbf-item"><div class="lbf-dot"></div>AI Career Mentor available 24/7</div>
+        <div class="lbf-item"><div class="lbf-dot"></div>500+ careers across every field in India</div>
+        <div class="lbf-item"><div class="lbf-dot"></div>Offline counseling session booking</div>
+      </div>
+    </div>
+    <div class="login-box">
+      <div class="lb-title">Get Started</div>
+      <div class="lb-sub">Sign in or create your free account</div>
+      <div class="tabs">
+        <button class="tab-btn active" id="login-tab" onclick="showAuthTab('login')">Sign In</button>
+        <button class="tab-btn" id="register-tab" onclick="showAuthTab('register')">Create Account</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="form-login">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input class="form-input" type="email" id="login-email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" type="password" id="login-pw" placeholder="••••••••" onkeypress="if(event.key==='Enter')doLogin()">
+        </div>
+        <div class="form-err" id="login-err"></div>
+        <button class="btn-primary" onclick="doLogin()">Sign In →</button>
+        <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--text3)">
+          <a href="#" onclick="demoLogin()" style="color:var(--accent2)">Try with demo account →</a>
+        </div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div id="form-register" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input class="form-input" type="text" id="reg-name" placeholder="Arjun Sharma">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input class="form-input" type="email" id="reg-email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" type="password" id="reg-pw" placeholder="Min 6 characters">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Current Grade</label>
+          <select class="form-select" id="reg-grade">
+            <option value="10th">Class 10th</option>
+            <option value="11th">Class 11th</option>
+            <option value="12th" selected>Class 12th</option>
+            <option value="col1">College 1st Year</option>
+            <option value="col2">College 2nd Year</option>
+            <option value="col3">College 3rd Year</option>
+            <option value="col4">College 4th Year</option>
+            <option value="post">Post Graduate</option>
+          </select>
+        </div>
+        <div class="form-err" id="reg-err"></div>
+        <button class="btn-primary" onclick="doRegister()">Create Account →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     ONBOARDING SCREEN
+═══════════════════════════════════════════════ -->
+<div class="screen" id="screen-onboarding">
+  <div class="onboard-wrap">
+    <div class="step-indicator">
+      <div class="step-dot active" id="sdot-1"></div>
+      <div class="step-dot" id="sdot-2"></div>
+    </div>
+
+    <!-- Step 1: Grade -->
+    <div class="onboard-step active" id="ostep-1">
+      <div class="onboard-title">What grade are you in? 📘</div>
+      <div class="onboard-sub">This helps us personalise your career roadmap and exam timelines for your current stage.</div>
+      <div class="grade-grid" id="grade-grid"></div>
+      <button class="btn-primary" style="max-width:300px" onclick="if(!APP.selectedGrade){showToast('Please select your grade','error');return;}goToOnboardStep(2)">Next: Select Interests →</button>
+    </div>
+
+    <!-- Step 2: Interests -->
+    <div class="onboard-step" id="ostep-2">
+      <div class="onboard-title">What are you interested in? 🎯</div>
+      <div class="onboard-sub">Select all that apply — you can always change this later. Your quiz questions will be tailored to these. <strong><span id="interest-count">0</span> selected</strong></div>
+      <div class="interest-grid" id="interest-grid"></div>
+      <button class="btn-primary" style="max-width:300px" onclick="finishOnboarding()">Start Exploring →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     MAIN APP SCREEN
+═══════════════════════════════════════════════ -->
+<div class="screen" id="screen-app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo" onclick="navigateTo('careers')">PathFinder</div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="sidebar-avatar">AS</div>
+      <div>
+        <div class="user-info-name" id="sidebar-name">Student</div>
+        <div class="user-info-grade" id="sidebar-grade">Class 12th</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Discover</div>
+      <button class="nav-item" data-page="careers" onclick="navigateTo('careers')">
+        <span class="nav-item-icon">🔭</span> Explore Careers
+      </button>
+      <button class="nav-item" data-page="quiz" onclick="navigateTo('quiz')">
+        <span class="nav-item-icon">🎯</span> Career Quiz
+        <span class="nav-badge">NEW</span>
+      </button>
+      <button class="nav-item" data-page="report" onclick="navigateTo('report')" id="nav-report" style="display:none">
+        <span class="nav-item-icon">📊</span> My Report
+      </button>
+
+      <div class="nav-section-label">My Journey</div>
+      <button class="nav-item" data-page="dashboard" onclick="navigateTo('dashboard')">
+        <span class="nav-item-icon">🏠</span> Dashboard
+      </button>
+      <button class="nav-item" data-page="profile" onclick="navigateTo('profile')">
+        <span class="nav-item-icon">👤</span> Profile
+      </button>
+
+      <div class="nav-section-label">Support</div>
+      <button class="nav-item" data-page="chat" onclick="navigateTo('chat')">
+        <span class="nav-item-icon">🤖</span> AI Mentor
+      </button>
+      <button class="nav-item" data-page="counseling" onclick="navigateTo('counseling')">
+        <span class="nav-item-icon">📅</span> Book Counseling
+      </button>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item" onclick="logout()" style="color:var(--coral)">
+        <span class="nav-item-icon">🚪</span> Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Explore Careers</div>
+      <div class="topbar-right">
+        <div class="search-bar">
+          <span style="color:var(--text3)">🔍</span>
+          <input type="text" id="search-input" placeholder="Search careers...">
+        </div>
+        <div class="user-avatar" style="cursor:pointer" onclick="navigateTo('profile')" id="topbar-avatar">AS</div>
+      </div>
+    </div>
+
+    <!-- PAGES CONTAINER -->
+    <div style="flex:1;overflow-y:auto;position:relative">
+
+      <!-- ─── CAREERS PAGE ─── -->
+      <div class="page" id="page-careers">
+        <div class="careers-hero">
+          <h1>Explore All Careers 🌍</h1>
+          <p>Browse 500+ career paths across every field. Click any career to see the full roadmap, exams, skills, courses, and jobs.</p>
+          <div class="filter-row" id="field-chips"></div>
+        </div>
+        <div class="careers-grid" id="careers-grid"></div>
+      </div>
+
+      <!-- ─── ROADMAP PAGE ─── -->
+      <div class="page" id="page-roadmap">
+        <div class="roadmap-hero">
+          <button class="roadmap-back" onclick="navigateTo('careers')">← Back to Careers</button>
+          <div class="roadmap-header">
+            <div class="rh-emoji" id="rh-emoji">💻</div>
+            <div class="rh-info">
+              <div class="rh-title" id="rh-title">Career Title</div>
+              <div class="rh-desc" id="rh-desc"></div>
+              <div class="rh-meta">
+                <div class="rh-pill" id="rh-salary"></div>
+                <div class="rh-pill" id="rh-demand"></div>
+                <div class="rh-pill" id="rh-field"></div>
+              </div>
+              <div class="rh-actions">
+                <button class="btn-save" id="btn-save" onclick="toggleSaveCareer()">♡ Save Career</button>
+                <button class="btn-chat-career" onclick="chatAboutCareer()">🤖 Ask AI about this career</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="background:var(--bg2);padding:16px 40px;border-bottom:1px solid var(--border)">
+          <p style="font-size:14px;color:var(--text2);line-height:1.6" id="rh-overview"></p>
+        </div>
+        <div class="roadmap-tabs">
+          <button class="rtab active" data-tab="timeline" onclick="switchRtab('timeline')">📍 Roadmap</button>
+          <button class="rtab" data-tab="exams" onclick="switchRtab('exams')">📝 Exams</button>
+          <button class="rtab" data-tab="skills" onclick="switchRtab('skills')">⚡ Skills</button>
+          <button class="rtab" data-tab="courses" onclick="switchRtab('courses')">🎓 Courses</button>
+          <button class="rtab" data-tab="jobs" onclick="switchRtab('jobs')">💼 Jobs</button>
+        </div>
+        <div class="roadmap-body">
+          <div class="rtab-panel active" id="rtp-timeline"></div>
+          <div class="rtab-panel" id="rtp-exams"></div>
+          <div class="rtab-panel" id="rtp-skills"></div>
+          <div class="rtab-panel" id="rtp-courses"></div>
+          <div class="rtab-panel" id="rtp-jobs"></div>
+        </div>
+      </div>
+
+      <!-- ─── QUIZ PAGE ─── -->
+      <div class="page" id="page-quiz">
+        <div class="quiz-wrap" id="quiz-wrap">
+          <div style="text-align:center;padding:80px 20px">
+            <div style="font-size:48px;margin-bottom:16px">🎯</div>
+            <h2 style="font-family:Clash Display,sans-serif;font-size:28px;margin-bottom:8px">Loading your quiz...</h2>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── REPORT PAGE ─── -->
+      <div class="page" id="page-report">
+        <div class="report-wrap" id="report-wrap">
+          <div class="empty-state">
+            <div class="empty-state-icon">📊</div>
+            <p>Take the career quiz to see your personalised results.</p>
+            <button onclick="navigateTo('quiz')" class="btn-primary" style="width:auto;margin:16px auto 0;display:inline-block;padding:12px 24px">Take Quiz →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── DASHBOARD PAGE ─── -->
+      <div class="page" id="page-dashboard">
+        <div class="dashboard-body">
+          <div class="dash-header">
+            <div class="dash-avatar" id="dash-avatar">AS</div>
+            <div class="dash-info">
+              <h1 id="dash-name">Welcome back!</h1>
+              <p id="dash-grade">Loading...</p>
+            </div>
+            <div class="dash-stats">
+              <div class="dstat"><div class="dstat-val" id="dash-quizzes">0</div><div class="dstat-label">Quizzes</div></div>
+              <div class="dstat"><div class="dstat-val" id="dash-saved">0</div><div class="dstat-label">Saved</div></div>
+              <div class="dstat"><div class="dstat-val" id="dash-join">-</div><div class="dstat-label">Joined</div></div>
+            </div>
+          </div>
+          <!-- Row 1: Progress + Saved -->
+          <div class="dash-grid">
+            <div class="dash-card">
+              <h3>🏆 Progress Journey</h3>
+              <div id="milestones-list"></div>
+            </div>
+            <div class="dash-card">
+              <h3>💾 Saved Careers</h3>
+              <div id="saved-list"></div>
+            </div>
+          </div>
+          <!-- Row 2: Activity Stats -->
+          <div class="dash-card" style="margin-bottom:20px">
+            <h3>📊 Activity Summary</h3>
+            <div id="activity-summary"></div>
+          </div>
+          <!-- Row 3: Quiz History + Recently Explored -->
+          <div class="dash-grid">
+            <div class="dash-card">
+              <h3>🎯 Quiz History</h3>
+              <div id="quiz-history"></div>
+            </div>
+            <div class="dash-card">
+              <h3>🔭 Recently Explored</h3>
+              <div id="recently-explored"></div>
+            </div>
+          </div>
+          <!-- Row 4: Quick Actions -->
+          <div class="dash-card">
+            <h3>⚡ Quick Actions</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px">
+              <button class="btn-secondary" onclick="navigateTo('quiz')" style="display:flex;align-items:center;gap:8px;padding:12px 16px">🎯 Take Quiz</button>
+              <button class="btn-secondary" onclick="navigateTo('careers')" style="display:flex;align-items:center;gap:8px;padding:12px 16px">🔭 Explore Careers</button>
+              <button class="btn-secondary" onclick="navigateTo('chat')" style="display:flex;align-items:center;gap:8px;padding:12px 16px">🤖 AI Mentor</button>
+              <button class="btn-secondary" onclick="navigateTo('counseling')" style="display:flex;align-items:center;gap:8px;padding:12px 16px">📅 Counseling</button>
+              <button class="btn-secondary" onclick="navigateTo('profile')" style="display:flex;align-items:center;gap:8px;padding:12px 16px">👤 Edit Profile</button>
+              <button class="btn-secondary" onclick="navigateTo('report')" style="display:flex;align-items:center;gap:8px;padding:12px 16px">📊 View Report</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── CHAT PAGE ─── -->
+      <div class="page" id="page-chat">
+        <div class="chat-layout">
+          <div class="chat-messages" id="chat-messages"></div>
+          <div class="chat-suggestions" id="chat-sugs"></div>
+          <div class="chat-input-area">
+            <textarea class="chat-input" id="chat-input" placeholder="Ask me anything about careers, exams, colleges, skills..." rows="1"></textarea>
+            <button class="chat-send-btn" id="chat-send-btn" onclick="sendChatMessage()">↑</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── COUNSELING PAGE ─── -->
+      <div class="page" id="page-counseling">
+        <div class="counsel-body">
+          <div style="margin-bottom:28px">
+            <h1 style="font-family:Clash Display,sans-serif;font-size:32px;margin-bottom:8px">Book a Counseling Session 📅</h1>
+            <p style="color:var(--text2)">Connect with certified career counselors for personalised 1-on-1 guidance</p>
+          </div>
+          <div class="instant-card" style="margin-bottom:24px">
+            <div class="instant-text">
+              <h3>🔴 Instant Call — Available Now</h3>
+              <p>Skip the wait and connect with an available counselor right now for a free 15-minute session.</p>
+            </div>
+            <div class="instant-actions">
+              <button class="btn-primary" style="width:auto;padding:12px 24px" onclick="showToast('Connecting you to a counselor...','info')">Start Free Call</button>
+              <button class="btn-secondary" onclick="navigateTo('chat')">Chat with AI Instead</button>
+            </div>
+          </div>
+          <div class="counsel-grid">
+            <div class="counsel-card">
+              <h3>👥 Choose Your Counselor</h3>
+              <p>Select a counselor based on your career area of interest</p>
+              <div class="counselor-list" id="counselor-list"></div>
+            </div>
+            <div class="counsel-card">
+              <h3>📅 Pick a Time</h3>
+              <p>Choose your preferred time slot and session mode</p>
+              <div style="font-size:13px;color:var(--text2);margin-bottom:8px">Available slots for this week:</div>
+              <div class="slots-grid" id="slot-grid"></div>
+              <div style="font-size:13px;color:var(--text2);margin:12px 0 8px">Session mode:</div>
+              <div class="mode-toggle">
+                <button class="mode-btn active" data-mode="online" onclick="setMode('online')">🌐 Online</button>
+                <button class="mode-btn" data-mode="offline" onclick="setMode('offline')">🏢 In-Person</button>
+              </div>
+              <button class="btn-book" onclick="bookSession()">Confirm Booking →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── PROFILE PAGE ─── -->
+      <div class="page" id="page-profile">
+        <div class="profile-body">
+          <h1 style="font-family:Clash Display,sans-serif;font-size:32px;margin-bottom:24px">My Profile 👤</h1>
+
+          <div class="profile-section">
+            <h3>Personal Information</h3>
+            <div class="profile-row">
+              <div class="profile-avatar-big" id="profile-avatar-big">AS</div>
+            </div>
+            <div class="profile-fields">
+              <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input class="form-input" id="profile-name-input" type="text">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input class="form-input" id="profile-email" type="email" disabled style="opacity:0.5">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Phone</label>
+                <input class="form-input" id="profile-phone" type="tel" placeholder="+91 98765 43210">
+              </div>
+              <div class="form-group">
+                <label class="form-label">City</label>
+                <input class="form-input" id="profile-city" type="text" placeholder="Mumbai">
+              </div>
+              <div class="form-group">
+                <label class="form-label">School / College</label>
+                <input class="form-input" id="profile-school" type="text" placeholder="DPS, Mumbai">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Current Grade</label>
+                <select class="form-select" id="profile-grade"></select>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-section">
+            <h3>My Interests</h3>
+            <p style="font-size:14px;color:var(--text2);margin-bottom:16px">Select all your interest areas — this personalises your quiz and recommendations</p>
+            <div class="interest-edit-grid" id="profile-interests"></div>
+          </div>
+
+          <button class="btn-save-profile" onclick="saveProfile()">Save Changes ✓</button>
+          <button class="btn-secondary" style="margin-left:12px;margin-top:12px" onclick="logout()">Sign Out</button>
+        </div>
+      </div>
+
+    </div><!-- end pages container -->
+  </main>
+</div><!-- end screen-app -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+
+function showAuthTab(tab) {
+  document.getElementById('form-login').style.display = tab==='login'?'block':'none';
+  document.getElementById('form-register').style.display = tab==='register'?'block':'none';
+  document.getElementById('login-tab').classList.toggle('active', tab==='login');
+  document.getElementById('register-tab').classList.toggle('active', tab==='register');
+}
+
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  const err = document.getElementById('login-err');
+  if (!email || !pw) { err.style.display='block'; err.textContent='Please fill in all fields'; return; }
+  const res = login(email, pw);
+  if (!res.ok) { err.style.display='block'; err.textContent=res.err; return; }
+  err.style.display='none';
+  onLoginSuccess(res.user);
+}
+
+function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pw = document.getElementById('reg-pw').value;
+  const grade = document.getElementById('reg-grade').value;
+  const err = document.getElementById('reg-err');
+  if (!name || !email || !pw) { err.style.display='block'; err.textContent='Please fill in all fields'; return; }
+  if (pw.length < 6) { err.style.display='block'; err.textContent='Password must be at least 6 characters'; return; }
+  const res = register(name, email, pw, grade);
+  if (!res.ok) { err.style.display='block'; err.textContent=res.err; return; }
+  err.style.display='none';
+  login(email, pw);
+  onLoginSuccess(res.user);
+}
+
+function demoLogin() {
+  // Create demo account if doesn\'t exist
+  const demoEmail = 'demo@pathfinder.in';
+  if (!APP.users.find(u=>u.email===demoEmail)) {
+    register('Arjun Sharma', demoEmail, 'demo123', '12th');
+  }
+  const res = login(demoEmail, 'demo123');
+  if (res.ok) onLoginSuccess(res.user);
+}
+
+function onLoginSuccess(user) {
+  updateSidebar();
+  document.getElementById('topbar-avatar').textContent = user.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  if (!user.grade || !user.interests || user.interests.length===0) {
+    showScreen('onboarding');
+    renderOnboarding();
+  } else {
+    showScreen('app');
+    navigateTo('dashboard');
+  }
+}
+
+function chatAboutCareer() {
+  if (!APP.activeCareer) return;
+  const msg = `Tell me everything about becoming a ${APP.activeCareer.title} in India — what exams do I need, which colleges are best, and what skills should I develop?`;
+  navigateTo('chat');
+  setTimeout(() => {
+    document.getElementById('chat-input').value = msg;
+    sendChatMessage();
+  }, 500);
+}
+
+
+// ════════════════════════════════════════════════════════════════
+//  DATABASE (localStorage-backed)
+// ════════════════════════════════════════════════════════════════
+
+const DB = {
+  save(key, val) { try { localStorage.setItem('pf_'+key, JSON.stringify(val)); } catch(e){} },
+  load(key, def) { try { const v=localStorage.getItem('pf_'+key); return v?JSON.parse(v):def; } catch(e){ return def; } },
+  remove(key) { localStorage.removeItem('pf_'+key); }
+};
+
+// ════════════════════════════════════════════════════════════════
+//  INTERESTS DATA
+// ════════════════════════════════════════════════════════════════
+
+const INTERESTS = [
+  { id:'tech',     emoji:'💻', name:'Technology',        count:'120+ careers' },
+  { id:'medicine', emoji:'🩺', name:'Medicine & Health',  count:'80+ careers' },
+  { id:'law',      emoji:'⚖️', name:'Law & Legal',        count:'30+ careers' },
+  { id:'business', emoji:'📈', name:'Business & Finance', count:'60+ careers' },
+  { id:'arts',     emoji:'🎨', name:'Arts & Design',      count:'50+ careers' },
+  { id:'science',  emoji:'🔬', name:'Science & Research', count:'70+ careers' },
+  { id:'govt',     emoji:'🏛️', name:'Government & Defence','count':'25+ careers' },
+  { id:'media',    emoji:'📰', name:'Media & Communication','count':'40+ careers' },
+  { id:'sports',   emoji:'⚽', name:'Sports & Fitness',    count:'20+ careers' },
+  { id:'teaching', emoji:'📚', name:'Education & Teaching','count':'30+ careers' },
+  { id:'psych',    emoji:'🧠', name:'Psychology & Social', count:'25+ careers' },
+  { id:'engg',     emoji:'⚙️', name:'Core Engineering',    count:'45+ careers' },
+];
+
+const GRADES = [
+  { id:'10th',  emoji:'📘', label:'Class 10th',    sub:'Secondary' },
+  { id:'11th',  emoji:'📙', label:'Class 11th',    sub:'Higher Secondary' },
+  { id:'12th',  emoji:'📗', label:'Class 12th',    sub:'Higher Secondary' },
+  { id:'col1',  emoji:'🎓', label:'College 1st Year', sub:'Undergraduate' },
+  { id:'col2',  emoji:'🎓', label:'College 2nd Year', sub:'Undergraduate' },
+  { id:'col3',  emoji:'🎓', label:'College 3rd Year', sub:'Undergraduate' },
+  { id:'col4',  emoji:'🎓', label:'College 4th Year', sub:'Undergraduate' },
+  { id:'post',  emoji:'🏆', label:'Post Graduate',    sub:'Masters / PhD' },
+];
+
+// ════════════════════════════════════════════════════════════════
+//  CAREERS DATA (comprehensive)
+// ════════════════════════════════════════════════════════════════
+
+const CAREERS = [
+  {
+    id:'sw-eng', emoji:'💻', title:'Software Engineer', field:'Technology',
+    tags:['Coding','Logic','Problem Solving'], salary:'₹8–40 LPA', demand:'vhigh',
+    demandLabel:'Very High', color:'#7c6dfa', interest:'tech',
+    desc:'Design, build and maintain software systems that power the modern world — from mobile apps to cloud platforms.',
+    roadmap:{
+      overview:'Software engineering is the most in-demand career globally. India produces 1.5M engineers/year and the field still has a massive talent gap.',
+      phases:[
+        { phase:'School (10th–12th)', items:[
+          {title:'Build Maths Foundation',desc:'Strong algebra, calculus and discrete maths are essential. Aim for 85%+ in Maths.'},
+          {title:'Learn Programming Early',desc:'Start with Python (free at python.org). Build small projects: calculator, games, scripts.'},
+          {title:'Competitive Coding',desc:'Join USACO, CodeChef, HackerEarth student contests to build problem-solving speed.'},
+        ]},
+        { phase:'Entrance Exams', items:[
+          {title:'JEE Main / JEE Advanced',desc:'For IIT / NIT admission. JEE Main score opens 900+ colleges. JEE Advanced for IITs specifically.'},
+          {title:'BITSAT',desc:'For BITS Pilani — one of India\'s best private engineering colleges. Separate exam.'},
+          {title:'VITEEE / MET / COMEDK',desc:'VIT, Manipal, PESIT — excellent private options with good placements.'},
+        ]},
+        { phase:'College (B.Tech/BE – 4 years)', items:[
+          {title:'B.Tech Computer Science',desc:'Core: Data Structures, Algorithms, DBMS, OS, Computer Networks, Software Engineering.'},
+          {title:'Internships (2nd–3rd Year)',desc:'Target FAANG, unicorn startups. Build 3+ GitHub projects. Leetcode practice daily.'},
+          {title:'Open Source & Hackathons',desc:'Contribute to open source (GSoC, Hacktoberfest). Win hackathons to build portfolio.'},
+        ]},
+        { phase:'Career Entry', items:[
+          {title:'Campus Placements',desc:'IIT placements average ₹20–50 LPA. Practice DSA + System Design for top companies.'},
+          {title:'Off-Campus Applications',desc:'LinkedIn, AngelList, company career pages. Referrals are 10x more effective.'},
+          {title:'GATE (Optional)',desc:'For IIT M.Tech or PSU jobs like BHEL, ONGC, NTPC.'},
+        ]},
+        { phase:'Career Growth', items:[
+          {title:'Junior → Senior → Lead → Principal',desc:'Typically 2–3 years per level. System design and leadership skills matter more at senior levels.'},
+          {title:'Specialisations',desc:'AI/ML, Web3/Blockchain, Cloud Architecture, Security, Mobile (iOS/Android).'},
+          {title:'Startup / Entrepreneurship',desc:'Many engineers start startups after 5–7 years of experience. India\'s startup ecosystem is booming.'},
+        ]},
+      ],
+      exams:[
+        {name:'JEE Main',type:'Engineering Entrance (NITs/IIITs)',badge:'Essential',bc:'rgba(124,109,250,0.15)',tc:'#b8adff'},
+        {name:'JEE Advanced',type:'IIT Admission',badge:'For IITs',bc:'rgba(0,212,180,0.15)',tc:'#00d4b4'},
+        {name:'BITSAT',type:'BITS Pilani',badge:'Recommended',bc:'rgba(245,166,35,0.15)',tc:'#f5a623'},
+        {name:'GATE',type:'M.Tech / PSU Jobs',badge:'Optional',bc:'rgba(0,229,160,0.15)',tc:'#00e5a0'},
+        {name:'GRE',type:'MS in USA/Canada',badge:'For Abroad',bc:'rgba(79,195,247,0.15)',tc:'#4fc3f7'},
+      ],
+      skills:[
+        {name:'Data Structures & Algorithms',level:95},
+        {name:'Python / Java / C++',level:90},
+        {name:'Web Development',level:82},
+        {name:'Databases (SQL/NoSQL)',level:78},
+        {name:'System Design',level:74},
+        {name:'Cloud (AWS/GCP/Azure)',level:68},
+        {name:'Git & DevOps',level:72},
+      ],
+      courses:[
+        {name:'CS50 by Harvard',provider:'edX',type:'Online',duration:'12 weeks',cost:'Free'},
+        {name:'Full Stack Web Dev Bootcamp',provider:'Udemy / Angela Yu',type:'Online',duration:'65 hours',cost:'₹499'},
+        {name:'DSA Master Course',provider:'Striver / TakeUForward',type:'Online',duration:'6 months',cost:'Free/₹2999'},
+        {name:'B.Tech CS',provider:'IIT/NIT/BITS',type:'Offline',duration:'4 years',cost:'₹2–15 L total'},
+        {name:'System Design Primer',provider:'GitHub (free)',type:'Online',duration:'Self-paced',cost:'Free'},
+      ],
+      jobs:[
+        {title:'Frontend Developer',salary:'₹5–20 LPA'},
+        {title:'Backend Engineer',salary:'₹8–35 LPA'},
+        {title:'Full Stack Developer',salary:'₹8–30 LPA'},
+        {title:'DevOps / SRE',salary:'₹10–35 LPA'},
+        {title:'ML Engineer',salary:'₹12–50 LPA'},
+        {title:'FAANG SDE',salary:'₹40–1Cr+ LPA'},
+        {title:'Tech Lead',salary:'₹25–60 LPA'},
+        {title:'CTO / VP Eng',salary:'₹60–3Cr+ LPA'},
+      ],
+    }
+  },
+  {
+    id:'doctor', emoji:'🩺', title:'Medical Doctor (MBBS)', field:'Healthcare',
+    tags:['Biology','Empathy','Science'], salary:'₹6–50 LPA', demand:'vhigh',
+    demandLabel:'Very High', color:'#ff6b6b', interest:'medicine',
+    desc:'Diagnose and treat patients, specialise in surgery, research or public health. One of the most respected professions globally.',
+    roadmap:{
+      overview:'Medicine is a noble and high-impact career. India has a major doctor-to-patient ratio deficit, making it a very stable career with growing demand.',
+      phases:[
+        { phase:'School (11th–12th)', items:[
+          {title:'Science: Physics, Chemistry, Biology (PCB)',desc:'Mandatory subjects. Biology and Chemistry are most critical. Target 90%+ in PCB.'},
+          {title:'NEET Preparation',desc:'Start NEET coaching from Class 11. Allen, Aakash, FIITJEE are top coaching institutes. 1.8M+ students appear.'},
+        ]},
+        { phase:'Entrance Exams', items:[
+          {title:'NEET-UG',desc:'Single national exam for MBBS. Top 10K ranks get government college seats. 720 total marks.'},
+          {title:'AIIMS MBBS (now via NEET)',desc:'AIIMS Delhi, Jodhpur, Bhopal, Raipur — the dream colleges. ~100 seats in Delhi.'},
+        ]},
+        { phase:'MBBS (5.5 years)', items:[
+          {title:'Pre-Clinical (2 years)',desc:'Anatomy, Physiology, Biochemistry. Huge memorisation load. CBME curriculum now active.'},
+          {title:'Para-Clinical (1.5 years)',desc:'Pathology, Pharmacology, Microbiology, Forensic Medicine.'},
+          {title:'Clinical Postings + Internship',desc:'Medicine, Surgery, Paediatrics, OBG, Ortho, Psychiatry. 1-year compulsory internship.'},
+        ]},
+        { phase:'Post-MBBS', items:[
+          {title:'NEET-PG',desc:'For MD/MS specialisation. Extremely competitive — 1.8 lakh appearing, 30K seats. Takes 2+ years prep.'},
+          {title:'DNB (National Board)',desc:'Alternative to MD/MS — done in hospital-based programmes. Slightly different pathway.'},
+          {title:'Super-Specialisation (DM/MCh)',desc:'Cardiology, Neurosurgery, Oncology, Nephrology — highest earning specialties.'},
+        ]},
+      ],
+      exams:[
+        {name:'NEET-UG',type:'MBBS Admission',badge:'Essential',bc:'rgba(255,107,107,0.15)',tc:'#ff6b6b'},
+        {name:'NEET-PG',type:'MD/MS Specialisation',badge:'Post-MBBS',bc:'rgba(245,166,35,0.15)',tc:'#f5a623'},
+        {name:'FMGE',type:'Foreign Medical Grads',badge:'If abroad',bc:'rgba(79,195,247,0.15)',tc:'#4fc3f7'},
+        {name:'USMLE',type:'Practice in USA',badge:'Optional',bc:'rgba(0,229,160,0.15)',tc:'#00e5a0'},
+        {name:'NEET-SS',type:'Super Speciality',badge:'DM/MCh',bc:'rgba(255,121,198,0.15)',tc:'#ff79c6'},
+      ],
+      skills:[
+        {name:'Clinical Diagnosis',level:95},{name:'Anatomy & Physiology',level:92},
+        {name:'Pharmacology',level:88},{name:'Patient Communication',level:90},
+        {name:'Surgical Skills',level:75},{name:'Medical Ethics',level:85},
+      ],
+      courses:[
+        {name:'NEET Coaching',provider:'Allen / Aakash / Unacademy',type:'Offline/Online',duration:'2 years',cost:'₹80K–2L/year'},
+        {name:'MBBS',provider:'AIIMS/Govt/Private Medical College',type:'Offline',duration:'5.5 years',cost:'₹10K–1Cr total'},
+        {name:'USMLE Prep',provider:'Kaplan / Amboss',type:'Online',duration:'2–3 years',cost:'₹50K–2L'},
+      ],
+      jobs:[
+        {title:'General Physician',salary:'₹6–15 LPA'},{title:'Surgeon',salary:'₹15–60 LPA'},
+        {title:'Cardiologist',salary:'₹30–1Cr+ LPA'},{title:'Radiologist',salary:'₹25–80 LPA'},
+        {title:'Psychiatrist',salary:'₹12–40 LPA'},{title:'Neurosurgeon',salary:'₹40–1.5Cr LPA'},
+      ],
+    }
+  },
+  {
+    id:'ca', emoji:'📊', title:'Chartered Accountant', field:'Finance',
+    tags:['Numbers','Taxation','Law'], salary:'₹7–40 LPA', demand:'high',
+    demandLabel:'High', color:'#f5a623', interest:'business',
+    desc:'Financial expert managing audits, taxation, corporate finance and strategic business decisions. CA is one of India\'s most prestigious qualifications.',
+    roadmap:{
+      overview:'The CA qualification by ICAI is internationally recognised. India needs 10 lakh+ more CAs, making this a very stable and high-earning career.',
+      phases:[
+        { phase:'School (11th–12th)', items:[
+          {title:'Commerce Stream (ideal)',desc:'Accounts, Business Studies, Economics, Maths. 85%+ in Class 12 boards.'},
+          {title:'Register for CA Foundation',desc:'Register with ICAI after Class 10. Appear for CA Foundation exam after Class 12.'},
+        ]},
+        { phase:'CA Foundation', items:[
+          {title:'4 Papers',desc:'Accounting, Business Laws, Quantitative Aptitude, Business Economics. Pass rate ~35–40%.'},
+        ]},
+        { phase:'CA Intermediate', items:[
+          {title:'Group 1 & 2 (6 papers)',desc:'Advanced Accounts, Corporate Law, Taxation, Cost Management, Audit, Financial Management.'},
+          {title:'Articleship (3 years)',desc:'Compulsory training under a practising CA. Hands-on experience in audit, tax, accounts.'},
+        ]},
+        { phase:'CA Final', items:[
+          {title:'8 Papers (2 groups)',desc:'SFM, Risk Management, Direct Tax, Indirect Tax (GST), Strategic Cost Management, Audit.'},
+          {title:'Passing Rate: 5–15%',desc:'Hardest Indian professional exam. Multiple attempts common. Average time: 5–7 years total.'},
+        ]},
+      ],
+      exams:[
+        {name:'CA Foundation',type:'ICAI Entry Exam',badge:'Step 1',bc:'rgba(245,166,35,0.15)',tc:'#f5a623'},
+        {name:'CA Intermediate',type:'Core Level',badge:'Step 2',bc:'rgba(245,166,35,0.15)',tc:'#f5a623'},
+        {name:'CA Final',type:'Qualification',badge:'Step 3',bc:'rgba(255,107,107,0.15)',tc:'#ff6b6b'},
+        {name:'CPA (USA)',type:'International CPA',badge:'Optional',bc:'rgba(79,195,247,0.15)',tc:'#4fc3f7'},
+        {name:'DISA',type:'Info Systems Audit',badge:'Specialisation',bc:'rgba(0,229,160,0.15)',tc:'#00e5a0'},
+      ],
+      skills:[
+        {name:'Financial Accounting',level:95},{name:'Taxation (GST/Income Tax)',level:92},
+        {name:'Auditing & Assurance',level:88},{name:'Financial Reporting (IFRS)',level:85},
+        {name:'Corporate Law',level:80},{name:'Excel & ERP (SAP/Tally)',level:82},
+      ],
+      courses:[
+        {name:'CA Foundation Self-Study',provider:'ICAI Study Material',type:'Offline',duration:'6 months',cost:'Free (ICAI)'},
+        {name:'CA Intermediate Coaching',provider:'ICAI / Private Institutes',type:'Offline/Online',duration:'1 year',cost:'₹30K–1L'},
+        {name:'GST Certification Course',provider:'ICAI',type:'Online',duration:'3 months',cost:'₹5,000'},
+      ],
+      jobs:[
+        {title:'Audit Associate (Big 4)',salary:'₹7–12 LPA'},{title:'Tax Consultant',salary:'₹8–20 LPA'},
+        {title:'CFO',salary:'₹30–1Cr+ LPA'},{title:'Financial Controller',salary:'₹15–40 LPA'},
+        {title:'Big 4 Partner',salary:'₹50–2Cr LPA'},{title:'Forensic Accountant',salary:'₹10–30 LPA'},
+      ],
+    }
+  },
+  {
+    id:'ux-design', emoji:'🎨', title:'UX/UI Designer', field:'Design & Creative',
+    tags:['Creativity','Empathy','Visual'], salary:'₹5–25 LPA', demand:'high',
+    demandLabel:'High', color:'#ff79c6', interest:'arts',
+    desc:'Create beautiful, intuitive digital experiences for apps, websites, and products that millions of people use every day.',
+    roadmap:{
+      overview:'UX/UI design is one of the fastest-growing creative careers globally. With every business needing digital products, demand for skilled designers is exploding.',
+      phases:[
+        { phase:'School (Any Stream)', items:[
+          {title:'Any Stream Works',desc:'Arts, Science, Commerce — all are fine. Develop visual thinking and curiosity about how things work.'},
+          {title:'Start Designing Now',desc:'Figma is free. Watch YouTube tutorials and start designing mock apps and websites immediately.'},
+        ]},
+        { phase:'Education Options', items:[
+          {title:'B.Des from NID / NIFT / IDC IIT Bombay',desc:'Top design colleges. Entrance: UCEED (for IITs), NID DAT, NIFT Entrance. Very competitive.'},
+          {title:'Google UX Design Certificate',desc:'6-month Coursera certificate. Excellent for career starters. Globally recognised.'},
+          {title:'Any Degree + Online UX Learning',desc:'Many successful designers have engineering or arts backgrounds + self-taught UX skills.'},
+        ]},
+        { phase:'Skill Building', items:[
+          {title:'Master Figma',desc:'Figma is the industry standard. Learn auto-layout, components, variables, prototyping.'},
+          {title:'User Research Methods',desc:'User interviews, usability testing, A/B testing, persona creation, journey mapping.'},
+          {title:'Build Portfolio',desc:'3–5 detailed case studies showing your design process. Dribbble, Behance, personal website.'},
+        ]},
+        { phase:'Career Growth', items:[
+          {title:'Junior UX Designer → Product Designer',desc:'2–3 years to go from junior to mid-level. Build a specialisation (mobile, enterprise, B2B).'},
+          {title:'Design Lead → Head of Design',desc:'Lead design teams, create design systems, work with product and engineering leadership.'},
+        ]},
+      ],
+      exams:[
+        {name:'UCEED',type:'IIT Design Entrance',badge:'For IITs',bc:'rgba(255,121,198,0.15)',tc:'#ff79c6'},
+        {name:'NID DAT',type:'NID Admission',badge:'Top Design School',bc:'rgba(255,121,198,0.15)',tc:'#ff79c6'},
+        {name:'NIFT Entrance',type:'Fashion/Design',badge:'Good Option',bc:'rgba(245,166,35,0.15)',tc:'#f5a623'},
+        {name:'CEED',type:'M.Des IIT/IISc',badge:'Postgrad Design',bc:'rgba(79,195,247,0.15)',tc:'#4fc3f7'},
+      ],
+      skills:[
+        {name:'Figma / Adobe XD',level:95},{name:'User Research',level:85},
+        {name:'Visual Design',level:88},{name:'Prototyping',level:82},
+        {name:'Design Systems',level:78},{name:'HTML/CSS Basics',level:60},
+        {name:'Accessibility (WCAG)',level:70},
+      ],
+      courses:[
+        {name:'Google UX Design Certificate',provider:'Coursera',type:'Online',duration:'6 months',cost:'₹2,000/month'},
+        {name:'UI/UX Design Bootcamp',provider:'Udemy / DesignCode',type:'Online',duration:'3 months',cost:'₹499–2999'},
+        {name:'B.Des',provider:'NID / NIFT / IIT',type:'Offline',duration:'4 years',cost:'₹1–5L/year'},
+      ],
+      jobs:[
+        {title:'Junior UX Designer',salary:'₹4–8 LPA'},{title:'Product Designer',salary:'₹10–25 LPA'},
+        {title:'Design Lead',salary:'₹20–40 LPA'},{title:'Head of Design',salary:'₹30–80 LPA'},
+        {title:'UX Researcher',salary:'₹8–22 LPA'},{title:'Freelance Designer',salary:'₹10–60 LPA'},
+      ],
+    }
+  },
+  {
+    id:'lawyer', emoji:'⚖️', title:'Lawyer / Advocate', field:'Law',
+    tags:['Argumentation','Research','Ethics'], salary:'₹4–50 LPA', demand:'high',
+    demandLabel:'High', color:'#b8adff', interest:'law',
+    desc:'Represent clients, interpret laws, draft contracts, and fight for justice in courts and corporate boardrooms.',
+    roadmap:{
+      overview:'Law has diverse specialisations — corporate law, criminal law, IP law, tax law, constitutional law. India\'s legal market is growing rapidly with international law firms entering.',
+      phases:[
+        { phase:'School (11th–12th)', items:[
+          {title:'Humanities/Arts (ideal)',desc:'History, Political Science, Economics give strong context. But any stream works for CLAT.'},
+          {title:'Communication Skills',desc:'Debate, MUNs, essay writing. Law requires exceptional verbal and written communication.'},
+        ]},
+        { phase:'Entrance Exams', items:[
+          {title:'CLAT (Common Law Admission Test)',desc:'For 24 National Law Universities. 150 questions in 2 hours. 40K+ students for 3K seats.'},
+          {title:'AILET',desc:'Specifically for NLU Delhi — top NLU. 150 seats, most competitive law entrance.'},
+          {title:'LSAT India',desc:'For private colleges like Jindal, Symbiosis. Accepted by 80+ colleges.'},
+        ]},
+        { phase:'Degree', items:[
+          {title:'5-year Integrated BA LLB / BBA LLB',desc:'Preferred — combines law with arts or business. Best path for school leavers.'},
+          {title:'Internships (critical!)',desc:'6–8 internships with law firms, HC/SC, NGOs during college. Network is everything in law.'},
+          {title:'Moot Courts & Journals',desc:'Win moot court competitions. Publish in law journals. These matter for top firm recruitment.'},
+        ]},
+        { phase:'Career', items:[
+          {title:'AIBE (Bar Exam)',desc:'All India Bar Examination — must pass to practice as an advocate in India.'},
+          {title:'Join a Law Firm or Litigate',desc:'Top firms: AZB, CAM, Trilegal, Khaitan, Shardul. Litigation bar at HC/SC is different path.'},
+          {title:'LLM / International Studies',desc:'LLM from NLU/abroad for specialisation. Oxford BCL, Harvard LLM for global practice.'},
+        ]},
+      ],
+      exams:[
+        {name:'CLAT',type:'NLU Admission',badge:'Essential',bc:'rgba(184,173,255,0.15)',tc:'#b8adff'},
+        {name:'AILET',type:'NLU Delhi',badge:'Top NLU',bc:'rgba(184,173,255,0.15)',tc:'#b8adff'},
+        {name:'AIBE',type:'Bar Exam to Practice',badge:'After Degree',bc:'rgba(245,166,35,0.15)',tc:'#f5a623'},
+        {name:'LSAT India',type:'Private Law Colleges',badge:'Alternative',bc:'rgba(0,229,160,0.15)',tc:'#00e5a0'},
+      ],
+      skills:[
+        {name:'Legal Research & Writing',level:95},{name:'Argumentation & Debate',level:92},
+        {name:'Contract Drafting',level:88},{name:'Constitutional Law',level:85},
+        {name:'Client Communication',level:82},{name:'Negotiation',level:80},
+      ],
+      courses:[
+        {name:'5-Year BA LLB / BBA LLB',provider:'NLU / Jindal / Symbiosis',type:'Offline',duration:'5 years',cost:'₹2–10L/year'},
+        {name:'LexisNexis / SCC Online',provider:'Legal Research Platforms',type:'Online',duration:'Subscription',cost:'₹5K–25K/year'},
+        {name:'Corporate Law Certification',provider:'NLSIU / NUJS',type:'Online',duration:'3 months',cost:'₹10K–30K'},
+      ],
+      jobs:[
+        {title:'Associate (Law Firm)',salary:'₹6–15 LPA'},{title:'Corporate Lawyer',salary:'₹15–1Cr LPA'},
+        {title:'Public Prosecutor',salary:'₹5–12 LPA'},{title:'Legal Consultant',salary:'₹12–40 LPA'},
+        {title:'Judge (JMFC/HC/SC)',salary:'₹10–30 LPA'},{title:'In-House Counsel',salary:'₹15–60 LPA'},
+      ],
+    }
+  },
+  {
+    id:'data-sci', emoji:'🧠', title:'Data Scientist', field:'Technology',
+    tags:['Math','Statistics','AI/ML'], salary:'₹8–50 LPA', demand:'vhigh',
+    demandLabel:'Very High', color:'#00d4b4', interest:'tech',
+    desc:'Uncover insights from massive datasets using statistics, machine learning, and visualisation to drive business decisions.',
+    roadmap:{
+      overview:'Data Science is the sexiest job of the 21st century. Every organisation now runs on data — finance, healthcare, e-commerce, social media all need data scientists.',
+      phases:[
+        { phase:'School', items:[
+          {title:'Strong Maths & Statistics',desc:'Calculus, linear algebra, probability and statistics are the foundations. Excel in these.'},
+        ]},
+        { phase:'College', items:[
+          {title:'B.Tech CS / B.Sc Stats-Maths / BCA',desc:'IITs, IISc, CMI, ISI for statistics. Data Science now offered as a separate B.Tech in some colleges.'},
+          {title:'Python Data Stack',desc:'Pandas, NumPy, Matplotlib, Scikit-learn, TensorFlow/PyTorch. Build on Kaggle.'},
+        ]},
+        { phase:'Projects & Portfolio', items:[
+          {title:'Kaggle Competitions',desc:'Top 10% in Kaggle competitions are very impressive on resumes. Start with Titanic dataset.'},
+          {title:'End-to-End Projects',desc:'Price prediction, recommendation systems, NLP sentiment analysis, image classification.'},
+        ]},
+        { phase:'Career Path', items:[
+          {title:'Data Analyst → Data Scientist → ML Engineer',desc:'Analyst roles are easier to get as a fresher. DS and MLE need strong ML fundamentals.'},
+          {title:'M.Tech / MS Data Science',desc:'IIIT Hyderabad, IIT Bombay, IIT Madras. US/UK MS for global opportunities.'},
+        ]},
+      ],
+      exams:[
+        {name:'JEE / CUET',type:'UG College Admission',badge:'Entry',bc:'rgba(0,212,180,0.15)',tc:'#00d4b4'},
+        {name:'GATE DA',type:'Data Science & AI (new)',badge:'PG / PSU',bc:'rgba(0,212,180,0.15)',tc:'#00d4b4'},
+        {name:'GRE',type:'MS Abroad',badge:'For USA/UK',bc:'rgba(79,195,247,0.15)',tc:'#4fc3f7'},
+        {name:'TCS iON / Infosys Cert',type:'Industry Certs',badge:'Helpful',bc:'rgba(0,229,160,0.15)',tc:'#00e5a0'},
+      ],
+      skills:[
+        {name:'Python & R',level:95},{name:'Machine Learning',level:90},
+        {name:'Statistics & Probability',level:92},{name:'SQL',level:85},
+        {name:'Deep Learning',level:78},{name:'Data Visualisation',level:82},
+        {name:'Big Data (Spark)',level:65},
+      ],
+      courses:[
+        {name:'Machine Learning Specialisation',provider:'Coursera (Andrew Ng)',type:'Online',duration:'3 months',cost:'₹3K/month'},
+        {name:'Applied Data Science with Python',provider:'Coursera / Michigan',type:'Online',duration:'5 months',cost:'₹3K/month'},
+        {name:'Fast.ai Practical Deep Learning',provider:'fast.ai',type:'Online',duration:'3 months',cost:'Free'},
+      ],
+      jobs:[
+        {title:'Data Analyst',salary:'₹5–15 LPA'},{title:'Data Scientist',salary:'₹10–35 LPA'},
+        {title:'ML Engineer',salary:'₹15–50 LPA'},{title:'AI Researcher',salary:'₹20–80 LPA'},
+        {title:'Business Intelligence Analyst',salary:'₹8–25 LPA'},{title:'Data Science Lead',salary:'₹25–70 LPA'},
+      ],
+    }
+  },
+  {
+    id:'ias', emoji:'🏛️', title:'IAS Officer (Civil Services)', field:'Government',
+    tags:['Leadership','Policy','Society'], salary:'₹8–20 LPA + perks', demand:'stable',
+    demandLabel:'Stable', color:'#f5a623', interest:'govt',
+    desc:'Shape India\'s governance, run districts, implement policy and serve the nation as an Indian Administrative Service officer.',
+    roadmap:{
+      overview:'IAS is the most prestigious exam in India. Officers get enormous power, job security, and the opportunity to directly impact millions of lives.',
+      phases:[
+        { phase:'School & College', items:[
+          {title:'Any Stream, Any College',desc:'UPSC does not care about your college or stream. NCERT books are the bible for preparation.'},
+          {title:'Start Reading Newspapers',desc:'The Hindu / Indian Express daily. Current affairs form 40%+ of UPSC questions.'},
+          {title:'Graduation',desc:'Any bachelor\'s degree qualifies. Age limit: 21–32 for General, 21–35 for OBC, 21–37 for SC/ST.'},
+        ]},
+        { phase:'UPSC Preparation', items:[
+          {title:'Prelims (2 papers)',desc:'GS Paper 1 (100 questions) + CSAT (Aptitude). Qualifying = appear for Mains. June every year.'},
+          {title:'Mains (9 papers)',desc:'Essay, 4 GS papers, 2 Optional papers, 2 Language papers. 1750 marks + 275 interview.'},
+          {title:'Interview / Personality Test',desc:'275 marks. Tests analytical thinking, leadership, awareness, and personality.'},
+        ]},
+        { phase:'Training', items:[
+          {title:'LBSNAA Training (2 years)',desc:'Lal Bahadur Shastri National Academy of Administration in Mussoorie. Foundation + Phase II.'},
+          {title:'District Training',desc:'6 months as SDM / Collector for on-ground experience.'},
+        ]},
+      ],
+      exams:[
+        {name:'UPSC Prelims',type:'Stage 1 Screening',badge:'Essential',bc:'rgba(245,166,35,0.15)',tc:'#f5a623'},
+        {name:'UPSC Mains',type:'Stage 2 Written',badge:'Core Exam',bc:'rgba(245,166,35,0.15)',tc:'#f5a623'},
+        {name:'UPSC Interview',type:'Stage 3 Personality',badge:'Final Stage',bc:'rgba(124,109,250,0.15)',tc:'#b8adff'},
+        {name:'State PSC',type:'State Civil Services',badge:'Alternative',bc:'rgba(0,229,160,0.15)',tc:'#00e5a0'},
+      ],
+      skills:[
+        {name:'Current Affairs & GS',level:95},{name:'Essay & Answer Writing',level:90},
+        {name:'Analytical Reasoning',level:88},{name:'Optional Subject Mastery',level:92},
+        {name:'Leadership & Integrity',level:95},{name:'Hindi/Regional Language',level:75},
+      ],
+      courses:[
+        {name:'UPSC Integrated Course',provider:'Vision IAS / Forum IAS / Vajiram',type:'Offline',duration:'2 years',cost:'₹1–2L/year'},
+        {name:'Online UPSC Mentorship',provider:'Unacademy / Khan Sir',type:'Online',duration:'2 years',cost:'₹30K–1L/year'},
+        {name:'Test Series',provider:'Insights IAS / ForumIAS',type:'Online',duration:'1 year',cost:'₹5K–15K'},
+      ],
+      jobs:[
+        {title:'SDM / Sub-Divisional Magistrate',salary:'₹10–14 LPA + perks'},{title:'District Collector (DM)',salary:'₹12–18 LPA + perks'},
+        {title:'IPS (Police Service)',salary:'₹9–16 LPA + perks'},{title:'IFS (Foreign Service)',salary:'₹10–20 LPA'},
+        {title:'State PCS Officer',salary:'₹7–14 LPA'},{title:'Secretary to Govt of India',salary:'₹18–25 LPA + perks'},
+      ],
+    }
+  },
+  {
+    id:'pilot', emoji:'✈️', title:'Commercial Pilot', field:'Aviation',
+    tags:['Physics','Discipline','Adventure'], salary:'₹15–1.5Cr LPA', demand:'high',
+    demandLabel:'High', color:'#4fc3f7', interest:'engg',
+    desc:'Command aircraft across India and the globe. Aviation is one of the most thrilling and well-paying careers available.',
+    roadmap:{
+      overview:'India\'s aviation sector is booming — IndiGo, Air India, Akasa are expanding. India will need 10,000+ pilots in next 10 years.',
+      phases:[
+        { phase:'School', items:[
+          {title:'Science: Physics & Maths (mandatory)',desc:'Good eyesight and physical fitness are essential. Class 2 Medical Certificate needed.'},
+        ]},
+        { phase:'CPL Training', items:[
+          {title:'SPL → PPL → CPL',desc:'Student → Private → Commercial Pilot Licence. 200+ flying hours required for CPL.'},
+          {title:'Flying Schools',desc:'Indira Gandhi RGNAA (Rae Bareli), CAE Oxford (Gondia), Bombay Flying Club, IGRUA.'},
+          {title:'Cost',desc:'₹40–70 lakh total. Many take education loans. USA flying is sometimes cheaper (Embry-Riddle).'},
+        ]},
+        { phase:'Career', items:[
+          {title:'First Officer at IndiGo/Air India/SpiceJet',desc:'Start as FO on narrow-body (A320, B737). 3000+ hours to become Captain.'},
+          {title:'International Airlines',desc:'Emirates, Etihad, Lufthansa — international salaries are significantly higher.'},
+        ]},
+      ],
+      exams:[
+        {name:'DGCA Written Exams',type:'Technical Knowledge (7 subjects)',badge:'Essential',bc:'rgba(79,195,247,0.15)',tc:'#4fc3f7'},
+        {name:'RTR(A)',type:'Radio Telephony Restricted',badge:'Required',bc:'rgba(0,229,160,0.15)',tc:'#00e5a0'},
+        {name:'DGCA Class 1 Medical',type:'Fitness Certificate',badge:'Must Pass',bc:'rgba(255,107,107,0.15)',tc:'#ff6b6b'},
+        {name:'Type Rating',type:'Specific Aircraft (A320/B737)',badge:'Post-CPL',bc:'rgba(245,166,35,0.15)',tc:'#f5a623'},
+      ],
+      skills:[
+        {name:'Aircraft Systems',level:95},{name:'Navigation & Meteorology',level:92},
+        {name:'Radio Telephony',level:88},{name:'Emergency Procedures',level:90},
+        {name:'Crew Resource Management',level:85},{name:'English Proficiency',level:90},
+      ],
+      courses:[
+        {name:'CPL Training (Full)',provider:'IGRUA / CAE / Bombay FC',type:'Offline',duration:'2–3 years',cost:'₹40–70L'},
+        {name:'DGCA Ground Classes',provider:'Capt. Shekhar Gupta / AeroMentors',type:'Online',duration:'6 months',cost:'₹15K–50K'},
+      ],
+      jobs:[
+        {title:'First Officer (Domestic)',salary:'₹15–30 LPA'},{title:'Captain (Domestic)',salary:'₹40–80 LPA'},
+        {title:'International Captain',salary:'₹80–1.5Cr LPA'},{title:'Flight Instructor',salary:'₹8–20 LPA'},
+        {title:'Corporate / Charter Pilot',salary:'₹25–60 LPA'},{title:'Cargo Pilot',salary:'₹25–50 LPA'},
+      ],
+    }
+  },
+  {
+    id:'psychologist', emoji:'🧘', title:'Psychologist / Counselor', field:'Mental Health',
+    tags:['Empathy','Research','Communication'], salary:'₹4–20 LPA', demand:'grow',
+    demandLabel:'Growing', color:'#ff79c6', interest:'psych',
+    desc:'Study human behaviour, help individuals navigate mental health challenges, and contribute to society\'s psychological well-being.',
+    roadmap:{
+      overview:'Mental health is India\'s next big frontier. With rising awareness post-COVID, demand for psychologists in schools, corporates and clinics is surging.',
+      phases:[
+        { phase:'School', items:[
+          {title:'Any Stream',desc:'Arts or Science both work. Biology is useful for neuropsychology pathway.'},
+        ]},
+        { phase:'College', items:[
+          {title:'BA/BSc Psychology',desc:'Delhi University, Christ University, Fergusson College are top options.'},
+          {title:'MA/MSc Psychology',desc:'Specialise in Clinical, I-O, Educational, or Social Psychology.'},
+        ]},
+        { phase:'Clinical Practice', items:[
+          {title:'MPhil Clinical Psychology',desc:'Required in India to practice as a Clinical Psychologist. RCI registered programme.'},
+          {title:'PhD / Research',desc:'NIMHANS, IITs, Tata Institute of Social Sciences for research careers.'},
+        ]},
+      ],
+      exams:[
+        {name:'CUET / DUET',type:'BA/BSc Admission',badge:'Entry',bc:'rgba(255,121,198,0.15)',tc:'#ff79c6'},
+        {name:'MPhil Entrance (NIMHANS)',type:'Clinical Psych',badge:'To Practice',bc:'rgba(245,166,35,0.15)',tc:'#f5a623'},
+        {name:'NET/JRF Psychology',type:'Research Fellowship',badge:'For Research',bc:'rgba(0,229,160,0.15)',tc:'#00e5a0'},
+        {name:'RCI Registration',type:'Practice License',badge:'Essential',bc:'rgba(255,107,107,0.15)',tc:'#ff6b6b'},
+      ],
+      skills:[
+        {name:'Therapeutic Communication',level:92},{name:'Psychological Assessment',level:88},
+        {name:'CBT / DBT / EMDR',level:80},{name:'Empathy & Active Listening',level:95},
+        {name:'Research Methods',level:82},{name:'Report Writing',level:78},
+      ],
+      courses:[
+        {name:'BA Psychology',provider:'DU / Christ / Fergusson',type:'Offline',duration:'3 years',cost:'₹20K–1L/year'},
+        {name:'MA Clinical Psychology',provider:'NIMHANS / TISS',type:'Offline',duration:'2 years',cost:'₹25K–1L/year'},
+        {name:'Online CBT Certificate',provider:'Beck Institute / Coursera',type:'Online',duration:'3 months',cost:'₹5K–20K'},
+      ],
+      jobs:[
+        {title:'School Counselor',salary:'₹4–8 LPA'},{title:'Clinical Psychologist',salary:'₹6–20 LPA'},
+        {title:'Corporate HR / I-O Psychologist',salary:'₹8–25 LPA'},{title:'Researcher (NIMHANS)',salary:'₹6–18 LPA'},
+        {title:'Therapist (Private Practice)',salary:'₹10–40 LPA'},{title:'Mental Health Startup',salary:'₹10–30 LPA'},
+      ],
+    }
+  },
+  {
+    id:'journalist', emoji:'📰', title:'Journalist / Media', field:'Media & Communication',
+    tags:['Writing','Curiosity','Communication'], salary:'₹3–25 LPA', demand:'med',
+    demandLabel:'Medium', color:'#f5a623', interest:'media',
+    desc:'Report news, tell compelling stories, and inform the public through print, TV, digital media, and podcasting.',
+    roadmap:{
+      overview:'Journalism is evolving rapidly. Digital media, video journalism, data journalism and independent podcasting offer exciting new avenues beyond traditional print and TV.',
+      phases:[
+        { phase:'School', items:[
+          {title:'Any Stream',desc:'Reading widely, writing daily, and watching quality journalism are more important than your stream.'},
+        ]},
+        { phase:'College', items:[
+          {title:'BA Journalism & Mass Communication',desc:'IIMC, AJK Mass Communication, Symbiosis, Jamia Millia are top institutes.'},
+          {title:'IIMC Entrance',desc:'Indian Institute of Mass Communication Delhi — the most prestigious journalism school in India.'},
+        ]},
+        { phase:'Career', items:[
+          {title:'Internships at Media Houses',desc:'TOI, NDTV, The Hindu, The Wire, Scroll.in. Start intern from Year 1. It\'s about portfolio.'},
+          {title:'Digital & Independent Media',desc:'YouTube channels, Substacks, podcasts. Many journalists now have their own platforms.'},
+        ]},
+      ],
+      exams:[
+        {name:'IIMC Entrance',type:'Top Journalism School',badge:'Prestigious',bc:'rgba(245,166,35,0.15)',tc:'#f5a623'},
+        {name:'CUET / SET',type:'BA Admission',badge:'Entry',bc:'rgba(0,229,160,0.15)',tc:'#00e5a0'},
+        {name:'UGC NET (Journalism)',type:'Lecturership',badge:'For Academia',bc:'rgba(79,195,247,0.15)',tc:'#4fc3f7'},
+      ],
+      skills:[
+        {name:'Writing & Storytelling',level:95},{name:'Research & Fact-Checking',level:90},
+        {name:'Video Production',level:75},{name:'Data Journalism',level:70},
+        {name:'Social Media Strategy',level:82},{name:'Interviewing',level:88},
+      ],
+      courses:[
+        {name:'BA Mass Communication',provider:'IIMC / AJK / Symbiosis',type:'Offline',duration:'2–3 years',cost:'₹50K–2L/year'},
+        {name:'Digital Journalism Certificate',provider:'Reuters / Google News Initiative',type:'Online',duration:'3 months',cost:'Free'},
+      ],
+      jobs:[
+        {title:'Reporter',salary:'₹3–8 LPA'},{title:'News Anchor/Journalist',salary:'₹5–15 LPA'},
+        {title:'Digital Content Editor',salary:'₹8–20 LPA'},{title:'Investigative Journalist',salary:'₹8–25 LPA'},
+        {title:'Media Entrepreneur',salary:'₹10–50 LPA'},{title:'Senior Correspondent',salary:'₹12–30 LPA'},
+      ],
+    }
+  },
+  {
+    id:'architect', emoji:'🏗️', title:'Architect', field:'Design & Engineering',
+    tags:['Creativity','Engineering','Art'], salary:'₹4–30 LPA', demand:'high',
+    demandLabel:'High', color:'#4fc3f7', interest:'arts',
+    desc:'Design buildings, cities, and spaces that blend structural engineering with aesthetic beauty and human experience.',
+    roadmap:{
+      overview:'Architecture in India has huge scope with smart cities, affordable housing projects and urban development missions creating enormous demand.',
+      phases:[
+        { phase:'School', items:[
+          {title:'Science with Physics & Maths',desc:'Maths is mandatory. Develop drawing skills and spatial reasoning. Physics for structural concepts.'},
+          {title:'NATA Preparation',desc:'National Aptitude Test in Architecture — tests drawing, spatial thinking, math.'},
+        ]},
+        { phase:'College', items:[
+          {title:'5-Year B.Arch',desc:'SPA Delhi, CEPT Ahmedabad, IIT Roorkee, NIT Trichy are top colleges.'},
+          {title:'Design Studios',desc:'Architecture college is 60% studio projects. Build 3D models, technical drawings, design thinking.'},
+        ]},
+        { phase:'Career', items:[
+          {title:'COA Registration',desc:'Council of Architecture registration is mandatory to practice in India.'},
+          {title:'M.Arch Specialisation',desc:'Urban design, sustainable architecture, landscape architecture, interior design.'},
+        ]},
+      ],
+      exams:[
+        {name:'NATA',type:'B.Arch Entrance',badge:'Essential',bc:'rgba(79,195,247,0.15)',tc:'#4fc3f7'},
+        {name:'JEE Paper 2 (B.Arch)',type:'NIT/IIT Arch',badge:'For NITs',bc:'rgba(79,195,247,0.15)',tc:'#4fc3f7'},
+        {name:'CEED',type:'M.Des / M.Arch IIT',badge:'Postgrad',bc:'rgba(0,229,160,0.15)',tc:'#00e5a0'},
+        {name:'COA Registration',type:'Practice Licence',badge:'After Degree',bc:'rgba(245,166,35,0.15)',tc:'#f5a623'},
+      ],
+      skills:[
+        {name:'Architectural Design',level:95},{name:'AutoCAD / Revit',level:90},
+        {name:'SketchUp / 3ds Max',level:85},{name:'Structural Knowledge',level:78},
+        {name:'Site Management',level:72},{name:'Sustainable Design',level:75},
+      ],
+      courses:[
+        {name:'5-Year B.Arch',provider:'SPA / CEPT / NIT / IIT',type:'Offline',duration:'5 years',cost:'₹1–5L/year'},
+        {name:'AutoCAD Certification',provider:'Autodesk',type:'Online',duration:'2 months',cost:'₹5K–15K'},
+      ],
+      jobs:[
+        {title:'Junior Architect',salary:'₹3–7 LPA'},{title:'Project Architect',salary:'₹8–20 LPA'},
+        {title:'Urban Planner',salary:'₹7–18 LPA'},{title:'Interior Designer',salary:'₹5–25 LPA'},
+        {title:'Landscape Architect',salary:'₹6–15 LPA'},{title:'Principal Architect',salary:'₹20–60 LPA'},
+      ],
+    }
+  },
+  {
+    id:'biotech', emoji:'🧬', title:'Biotechnologist', field:'Science & Research',
+    tags:['Biology','Chemistry','Research'], salary:'₹4–25 LPA', demand:'grow',
+    demandLabel:'Growing', color:'#00e5a0', interest:'science',
+    desc:'Apply living organisms and technology to develop medicines, agricultural solutions, and sustainable materials.',
+    roadmap:{
+      overview:'Biotechnology is powering the future of medicine (mRNA vaccines), agriculture (GMO crops), and sustainability (biofuels). India is becoming a biotech hub.',
+      phases:[
+        { phase:'School', items:[
+          {title:'PCB (Physics, Chemistry, Biology)',desc:'Biology and Chemistry are crucial. Understanding cellular biology and biochemistry is essential.'},
+        ]},
+        { phase:'College', items:[
+          {title:'B.Tech Biotechnology / B.Sc Biotech',desc:'IIT Bombay, IIT Kharagpur, VIT, TERI, Amity. 4-year B.Tech preferred for industry.'},
+          {title:'Lab Skills',desc:'PCR, ELISA, cell culture, fermentation, bioreactors — hands-on lab experience is critical.'},
+        ]},
+        { phase:'Research Career', items:[
+          {title:'M.Sc / M.Tech Biotechnology',desc:'Specialise in medical biotech, agricultural biotech, bioinformatics, fermentation technology.'},
+          {title:'PhD (CSIR / DBT Fellowship)',desc:'Government funds PhD through CSIR JRF, DBT JRF, GATE scholarships at IITs and CSIR labs.'},
+        ]},
+      ],
+      exams:[
+        {name:'JEE / NEET / CUET',type:'B.Tech / B.Sc Admission',badge:'Entry',bc:'rgba(0,229,160,0.15)',tc:'#00e5a0'},
+        {name:'CSIR NET Life Sciences',type:'JRF & Research',badge:'For Research',bc:'rgba(0,229,160,0.15)',tc:'#00e5a0'},
+        {name:'DBT JRF',type:'Biotech Fellowship',badge:'Funded PhD',bc:'rgba(0,212,180,0.15)',tc:'#00d4b4'},
+        {name:'GATE Biotechnology',type:'M.Tech / PSU',badge:'Postgrad',bc:'rgba(124,109,250,0.15)',tc:'#b8adff'},
+      ],
+      skills:[
+        {name:'Molecular Biology Techniques',level:90},{name:'PCR / ELISA / Western Blot',level:88},
+        {name:'Bioinformatics',level:75},{name:'Cell Culture',level:82},
+        {name:'Data Analysis (R/Python)',level:70},{name:'Lab Safety & GMP',level:88},
+      ],
+      courses:[
+        {name:'B.Tech Biotechnology',provider:'IIT / VIT / Amity',type:'Offline',duration:'4 years',cost:'₹1–10L/year'},
+        {name:'Bioinformatics with Python',provider:'Coursera / edX',type:'Online',duration:'3 months',cost:'Free–₹5K'},
+      ],
+      jobs:[
+        {title:'Research Associate',salary:'₹4–10 LPA'},{title:'Bioinformatics Analyst',salary:'₹6–18 LPA'},
+        {title:'Quality Control Scientist',salary:'₹4–12 LPA'},{title:'Pharma R&D Scientist',salary:'₹6–20 LPA'},
+        {title:'Biotech Entrepreneur',salary:'Variable'},{title:'Senior Researcher (CSIR/ICMR)',salary:'₹10–25 LPA'},
+      ],
+    }
+  },
+];
+
+// ════════════════════════════════════════════════════════════════
+//  QUIZ QUESTIONS (per interest)
+// ════════════════════════════════════════════════════════════════
+
+const QUIZ_QUESTIONS = {
+  tech: [
+    { q:'You have a free weekend — what do you end up doing?',
+      sub:'Pick the one that feels most natural',
+      opts:[{e:'🕹️',t:'Building something on a computer',s:'A game, script, or website',w:{sw:4,ds:1}},{e:'📖',t:'Reading about how tech works',s:'AI, blockchain, cybersecurity',w:{ds:3,sw:1}},{e:'🎮',t:'Playing or reviewing apps & games',s:'UX thinking',w:{arts:2,sw:2}},{e:'🔧',t:'Taking apart or fixing gadgets',s:'Hardware curiosity',w:{engg:3,sw:1}}]},
+    { q:'A startup offers you any role — which do you pick?',
+      sub:'Go with your gut',
+      opts:[{e:'👨‍💻',t:'Lead engineer building the product',s:'Core engineering role',w:{sw:5}},{e:'📊',t:'Data scientist finding insights',s:'Analytics and ML',w:{ds:5}},{e:'🎨',t:'Product designer shaping UX',s:'Design thinking',w:{arts:4,sw:1}},{e:'🔐',t:'Security engineer protecting systems',s:'Cybersecurity',w:{sw:2,engg:3}}]},
+    { q:'Which of these problems sounds most exciting to solve?',
+      opts:[{e:'🚀',t:'Making websites load in under 1 second',s:'Performance engineering',w:{sw:4}},{e:'🧠',t:'Teaching a machine to recognise faces',s:'Computer vision / ML',w:{ds:5,sw:1}},{e:'🌐',t:'Building an app used by 10 million people',s:'Scale and architecture',w:{sw:4,ds:1}},{e:'🔍',t:'Finding vulnerabilities before hackers do',s:'Ethical hacking',w:{sw:2,engg:2}}]},
+    { q:'What kind of tech output feels most satisfying?',
+      opts:[{e:'📱',t:'An app on the App Store with real users',s:'Consumer product',w:{sw:4,arts:1}},{e:'📈',t:'A model that predicts stock movements',s:'Quantitative analysis',w:{ds:4,business:1}},{e:'🛡️',t:'A system that stops a cyber attack',s:'Security infrastructure',w:{engg:3,sw:2}},{e:'🤖',t:'A chatbot that actually understands you',s:'NLP / conversational AI',w:{ds:4,sw:2}}]},
+  ],
+  medicine: [
+    { q:'You volunteer at a hospital — which ward do you spend the most time in?',
+      opts:[{e:'🚑',t:'Emergency — fast decisions under pressure',s:'Acute care',w:{medicine:5}},{e:'🧪',t:'Pathology lab — studying samples',s:'Diagnostic science',w:{medicine:2,science:3}},{e:'🧠',t:'Psychiatry — talking to patients',s:'Mental health',w:{psych:4,medicine:1}},{e:'👶',t:'Paediatrics — working with children',s:'Child health',w:{medicine:4}}]},
+    { q:'A family member collapses at dinner — what is your instinct?',
+      opts:[{e:'🏃',t:'Jump in immediately and take charge',s:'Natural first-responder',w:{medicine:5}},{e:'📱',t:'Call emergency services and guide calmly',s:'Leadership under pressure',w:{medicine:3,govt:1}},{e:'🔍',t:'Try to figure out what caused it',s:'Diagnostic thinking',w:{medicine:3,science:2}},{e:'😨',t:'Panic — I prefer the lab to bedside',s:'Research over clinical',w:{science:3,medicine:1}}]},
+    { q:'Which part of medical training sounds most interesting?',
+      opts:[{e:'🔬',t:'Studying how diseases work at cellular level',s:'Pathophysiology',w:{medicine:3,science:3}},{e:'💊',t:'Learning which drugs treat which condition',s:'Pharmacology',w:{medicine:4}},{e:'🩻',t:'Reading X-rays and MRI scans',s:'Radiology',w:{medicine:4}},{e:'✂️',t:'Performing surgery and procedures',s:'Surgical skills',w:{medicine:5}}]},
+    { q:'Which global health challenge would you dedicate your life to?',
+      opts:[{e:'🧬',t:'Curing cancer through immunotherapy',s:'Oncology research',w:{medicine:3,science:3}},{e:'🦠',t:'Stopping the next pandemic',s:'Infectious disease',w:{medicine:3,science:2,govt:1}},{e:'❤️',t:'Reducing heart disease in rural India',s:'Community health',w:{medicine:4,govt:1}},{e:'🧠',t:'Solving the mental health crisis',s:'Psychiatry',w:{psych:4,medicine:2}}]},
+  ],
+  law: [
+    { q:'You read about a court case in the newspaper — what do you do?',
+      opts:[{e:'📝',t:'Analyse whether the judgment was fair',s:'Legal reasoning',w:{law:5}},{e:'🗣️',t:'Argue both sides with friends passionately',s:'Debate instinct',w:{law:4}},{e:'📚',t:'Research the legal history behind it',s:'Jurisprudence interest',w:{law:4,science:1}},{e:'😴',t:'Skip to sports page — law bores me',s:'Not the right signal',w:{sports:2}}]},
+    { q:'Which type of case would you most want to argue in court?',
+      opts:[{e:'🏢',t:'A ₹500Cr corporate acquisition gone wrong',s:'M&A / corporate law',w:{law:4,business:2}},{e:'⚖️',t:'Defending someone falsely accused of murder',s:'Criminal defence',w:{law:5}},{e:'🌍',t:'A country violating international human rights',s:'International law',w:{law:4,govt:1}},{e:'💡',t:'A patent dispute between two tech giants',s:'Intellectual property',w:{law:4,tech:1}}]},
+    { q:'What skill do you feel you\'re naturally strongest in?',
+      opts:[{e:'✍️',t:'Writing — I can structure complex arguments',s:'Legal drafting',w:{law:3,media:1}},{e:'🎤',t:'Speaking — I can hold a room\'s attention',s:'Oral advocacy',w:{law:4}},{e:'🧩',t:'Problem-solving — I find creative solutions',s:'Legal strategy',w:{law:3,business:1}},{e:'🔍',t:'Research — I leave no stone unturned',s:'Legal research',w:{law:4,science:1}}]},
+  ],
+  business: [
+    { q:'You have ₹10 lakhs to invest — what do you do with it?',
+      opts:[{e:'📈',t:'Put it all in stocks and mutual funds',s:'Investment mindset',w:{business:4,ds:1}},{e:'🚀',t:'Start a small business immediately',s:'Entrepreneur spirit',w:{business:5}},{e:'🏠',t:'Buy property for long-term rental income',s:'Asset management',w:{business:3}},{e:'📚',t:'Invest it in the best MBA you can find',s:'Human capital first',w:{business:3,teaching:1}}]},
+    { q:'Which business figure\'s journey inspires you most?',
+      opts:[{e:'🧡',t:'Narayana Murthy — built Infosys from scratch',s:'Tech entrepreneurship',w:{business:4,sw:1}},{e:'💼',t:'N R Narayana Murthy — CEO to board member',s:'Corporate leadership',w:{business:3}},{e:'📊',t:'Rakesh Jhunjhunwala — Indian Warren Buffett',s:'Value investing',w:{business:5}},{e:'💡',t:'Ritesh Agarwal — OYO founder at 19',s:'Startup founder',w:{business:5}}]},
+    { q:'A company is losing money — where do you start?',
+      opts:[{e:'💰',t:'Cut costs ruthlessly across departments',s:'Financial control',w:{business:3}},{e:'🎯',t:'Identify which product lines drive growth',s:'Strategic focus',w:{business:4,ds:1}},{e:'👥',t:'Talk to customers — understand the problem',s:'Market research',w:{business:3,psych:1}},{e:'📊',t:'Analyse every financial metric first',s:'Data-driven approach',w:{ds:3,business:2}}]},
+  ],
+  arts: [
+    { q:'You open a design app — what do you start creating first?',
+      opts:[{e:'📱',t:'A redesign of an app you use daily',s:'Product / UX design',w:{arts:5,sw:1}},{e:'🏛️',t:'A floor plan for your dream house',s:'Architecture thinking',w:{arts:4,engg:2}},{e:'🎬',t:'A storyboard for a short film',s:'Visual storytelling',w:{arts:4,media:2}},{e:'👗',t:'A mood board for a fashion collection',s:'Fashion design',w:{arts:5}}]},
+    { q:'You visit a city for the first time — what do you notice first?',
+      opts:[{e:'🏙️',t:'The architecture and building design',s:'Spatial awareness',w:{arts:4,engg:2}},{e:'🖼️',t:'Street art, murals, and visual culture',s:'Visual art sensitivity',w:{arts:5}},{e:'📐',t:'How public spaces are laid out and used',s:'Urban design',w:{arts:3,engg:3}},{e:'🎭',t:'The vibe, people, and cultural energy',s:'Experiential thinking',w:{arts:3,media:2}}]},
+    { q:'What creative output makes you proudest?',
+      opts:[{e:'✍️',t:'A piece of writing that made someone feel',s:'Creative writing',w:{media:3,arts:2}},{e:'🎨',t:'A visual design that solves a real problem',s:'Functional design',w:{arts:5,sw:1}},{e:'📸',t:'A photo or film that captures a moment',s:'Visual media',w:{arts:4,media:2}},{e:'🏗️',t:'A physical object or space I designed',s:'3D and spatial design',w:{arts:4,engg:2}}]},
+  ],
+  science: [
+    { q:'In a lab, you accidentally get a surprising result — what do you do?',
+      opts:[{e:'🔍',t:'Drop everything and investigate it deeply',s:'Scientific curiosity',w:{science:5}},{e:'📝',t:'Document it carefully and replicate it',s:'Rigorous methodology',w:{science:4}},{e:'🗣️',t:'Tell everyone — it could be a breakthrough!',s:'Collaborative science',w:{science:3,media:1}},{e:'😅',t:'Assume it was an error and redo the experiment',s:'Cautious approach',w:{science:3}}]},
+    { q:'Which scientific breakthrough excites you most?',
+      opts:[{e:'🧬',t:'CRISPR gene editing to cure genetic diseases',s:'Molecular biology',w:{science:5,medicine:2}},{e:'🚀',t:'SpaceX making Mars colonisation possible',s:'Space science',w:{science:4,engg:2}},{e:'⚡',t:'Room-temperature superconductors for clean energy',s:'Physics & energy',w:{science:4,engg:2}},{e:'🦠',t:'mRNA vaccines that can cure any disease',s:'Biotech & pharma',w:{science:4,medicine:2}}]},
+    { q:'Where would you most love to work?',
+      opts:[{e:'🏫',t:'IISc / IIT research lab',s:'Academic research',w:{science:5,teaching:1}},{e:'🏢',t:'R&D division of a pharma company',s:'Industry research',w:{science:3,medicine:2}},{e:'🌍',t:'WHO or ICMR doing public health research',s:'Government research',w:{science:3,govt:2}},{e:'🚀',t:'ISRO working on space missions',s:'Space technology',w:{science:3,engg:3}}]},
+  ],
+  govt: [
+    { q:'You become the District Collector — what is your first initiative?',
+      opts:[{e:'📚',t:'Improve every school in the district',s:'Education reform',w:{govt:5,teaching:2}},{e:'🚑',t:'Fix the primary healthcare system',s:'Public health',w:{govt:4,medicine:2}},{e:'🌾',t:'Solve the farmer water crisis',s:'Rural development',w:{govt:5}},{e:'🏗️',t:'Build better roads and infrastructure',s:'Infrastructure',w:{govt:4,engg:2}}]},
+    { q:'What does public service mean to you?',
+      opts:[{e:'🎯',t:'The power to create real, lasting change',s:'Impact-driven',w:{govt:5}},{e:'🔒',t:'A stable, respectable career for life',s:'Security-focused',w:{govt:3}},{e:'🌍',t:'Representing India on the world stage',s:'Diplomacy',w:{govt:4}},{e:'⚖️',t:'Upholding justice and the rule of law',s:'Legal governance',w:{govt:4,law:2}}]},
+    { q:'UPSC preparation takes 3–5 years of intense study — how do you feel?',
+      opts:[{e:'💪',t:'I\'m ready — this is exactly my goal',s:'Full commitment',w:{govt:5}},{e:'🤔',t:'I\'ll try — but exploring other options too',s:'Hedging bets',w:{govt:2,business:1}},{e:'😰',t:'Too long — I want results faster',s:'Less patient path',w:{business:2,sw:1}},{e:'📚',t:'I actually enjoy studying, so it sounds okay',s:'Scholar mentality',w:{govt:3,science:2}}]},
+  ],
+  media: [
+    { q:'Breaking news: a major political scandal. What\'s your role?',
+      opts:[{e:'🎙️',t:'On camera reporting live from the scene',s:'Broadcast journalism',w:{media:5}},{e:'✍️',t:'Writing the deep-dive investigation piece',s:'Print / digital journalism',w:{media:4}},{e:'📊',t:'Finding the data patterns in the story',s:'Data journalism',w:{media:3,ds:2}},{e:'📸',t:'Documenting it visually through photos',s:'Photojournalism',w:{media:4,arts:2}}]},
+    { q:'Which media platform do you consume the most?',
+      opts:[{e:'🎬',t:'YouTube documentaries and video essays',s:'Video content',w:{media:4,arts:2}},{e:'📰',t:'Long-form journalism and newsletters',s:'Text journalism',w:{media:4}},{e:'🎙️',t:'Podcasts on current affairs',s:'Audio media',w:{media:3}},{e:'📱',t:'Instagram and Twitter/X for live news',s:'Social media journalism',w:{media:3,sw:1}}]},
+  ],
+  sports: [
+    { q:'Your favourite athlete retires — which role do you imagine for yourself?',
+      opts:[{e:'🏆',t:'I want to be that athlete myself',s:'Professional sports career',w:{sports:5}},{e:'🎽',t:'Coach the next generation to greatness',s:'Sports coaching',w:{sports:4,teaching:2}},{e:'📊',t:'Analyse player data and improve performance',s:'Sports analytics',w:{sports:3,ds:2}},{e:'📣',t:'Commentate and cover sports on TV',s:'Sports media',w:{sports:2,media:3}}]},
+    { q:'What is your relationship with sport?',
+      opts:[{e:'🏃',t:'I compete seriously — state or national level',s:'High-level athlete',w:{sports:5}},{e:'💪',t:'I train hard but for fitness and health',s:'Sports science path',w:{sports:3,medicine:2}},{e:'📺',t:'I follow every score and statistic',s:'Sports management',w:{sports:2,business:2}},{e:'👟',t:'I love the business side — sponsorships, brands',s:'Sports marketing',w:{business:3,sports:2}}]},
+  ],
+  teaching: [
+    { q:'A student who has given up asks for your help — what do you do?',
+      opts:[{e:'💡',t:'Find a completely new way to explain the concept',s:'Creative pedagogy',w:{teaching:5}},{e:'🧘',t:'Understand what\'s blocking them emotionally first',s:'Empathetic teaching',w:{teaching:4,psych:2}},{e:'📊',t:'Diagnose exactly where their understanding broke down',s:'Diagnostic teaching',w:{teaching:4,ds:1}},{e:'🎮',t:'Make it a game or fun challenge for them',s:'Gamification',w:{teaching:4,arts:1}}]},
+    { q:'Which teaching environment appeals to you most?',
+      opts:[{e:'🏫',t:'A classroom of 30 eager school students',s:'School teaching',w:{teaching:5}},{e:'🎓',t:'A university seminar with brilliant post-grads',s:'Higher education',w:{teaching:4,science:1}},{e:'💻',t:'Creating courses for millions online',s:'EdTech',w:{teaching:4,sw:1}},{e:'🏢',t:'Training professionals in a corporate setting',s:'L&D / corporate training',w:{teaching:3,business:2}}]},
+  ],
+  psych: [
+    { q:'A close friend is going through a difficult time — what do you do?',
+      opts:[{e:'👂',t:'Listen for hours without trying to fix it',s:'Empathetic listening',w:{psych:5}},{e:'🧩',t:'Help them logically analyse their situation',s:'Problem-solving approach',w:{psych:3,business:1}},{e:'🔍',t:'Ask deep questions to understand the root cause',s:'Exploratory questioning',w:{psych:4,science:1}},{e:'📚',t:'Research and share resources that might help',s:'Information-driven care',w:{psych:3,teaching:1}}]},
+    { q:'Which area of psychology fascinates you most?',
+      opts:[{e:'🧠',t:'How trauma shapes personality and behaviour',s:'Clinical psychology',w:{psych:5}},{e:'🏢',t:'What motivates people to perform better at work',s:'Industrial-Organisational psych',w:{psych:3,business:3}},{e:'👶',t:'How children develop language and emotion',s:'Developmental psychology',w:{psych:4,teaching:2}},{e:'🔬',t:'The neuroscience behind mental illness',s:'Neuropsychology',w:{psych:4,science:2}}]},
+    { q:'Where would you ideally practice?',
+      opts:[{e:'🏥',t:'A hospital treating severe mental illness',s:'Clinical setting',w:{psych:5,medicine:1}},{e:'🏫',t:'A school supporting students\' wellbeing',s:'Educational counselling',w:{psych:4,teaching:2}},{e:'🏢',t:'A corporate HR department',s:'Workplace wellness',w:{psych:3,business:2}},{e:'🔬',t:'A research lab studying human behaviour',s:'Academic research',w:{psych:4,science:2}}]},
+  ],
+  engg: [
+    { q:'You see a broken bridge on the news — what crosses your mind first?',
+      opts:[{e:'🔩',t:'What material failed and why',s:'Materials engineering',w:{engg:5}},{e:'📐',t:'Whether the design was fundamentally flawed',s:'Structural engineering',w:{engg:4}},{e:'💧',t:'How water and corrosion weakened the foundation',s:'Civil engineering',w:{engg:5}},{e:'📊',t:'Whether sensors could have predicted the collapse',s:'Smart infrastructure',w:{engg:3,ds:2}}]},
+    { q:'Which engineering project would make you most proud?',
+      opts:[{e:'🚀',t:'Designing the propulsion system for ISRO\'s next rocket',s:'Aerospace engineering',w:{engg:5,science:2}},{e:'🚗',t:'Building India\'s first truly affordable electric car',s:'Automotive engineering',w:{engg:4,sw:1}},{e:'🌊',t:'An offshore wind farm powering 1 million homes',s:'Renewable energy',w:{engg:4,science:2}},{e:'🏗️',t:'The tallest building ever constructed in India',s:'Civil/structural',w:{engg:5}}]},
+    { q:'You prefer working with systems that are:',
+      opts:[{e:'⚙️',t:'Mechanical — gears, engines, physical forces',s:'Mechanical domain',w:{engg:5}},{e:'⚡',t:'Electrical — circuits, power grids, electronics',s:'Electrical domain',w:{engg:4,sw:1}},{e:'🌡️',t:'Chemical — reactions, materials, processes',s:'Chemical engineering',w:{engg:4,science:2}},{e:'🤖',t:'Robotic — automation and intelligent machines',s:'Mechatronics',w:{engg:4,sw:2}}]},
+  ],
+};
+
+// ── GENERAL QUESTIONS (asked to everyone) ──────────────────────
+const GENERAL_QUESTIONS = [
+  { q:'You have just graduated. What is your dream headline in 10 years?',
+    sub:'Be ambitious — dream freely',
+    opts:[{e:'📰',t:'Engineer behind AI that changed medicine',s:'Tech meets impact',w:{sw:3,ds:3,medicine:1}},{e:'🏛️',t:'"IAS officer who transformed rural education"',s:'Government impact',w:{govt:5,teaching:1}},{e:'⚖️',t:'"Lawyer who won India\'s most landmark case"',s:'Legal legacy',w:{law:5}},{e:'💰',t:'"Founder of India\'s next unicorn startup"',s:'Entrepreneurship',w:{business:5,sw:1}}]},
+  { q:'Saturday morning — no obligations. What are you most likely doing?',
+    sub:'Your natural inclinations reveal a lot',
+    opts:[{e:'💻',t:'Building or learning something technical',s:'Maker mindset',w:{sw:3,ds:2,engg:2}},{e:'📚',t:'Reading — non-fiction, history, or science',s:'Scholar tendency',w:{science:2,law:2,govt:2}},{e:'🎨',t:'Creating something visual or artistic',s:'Creative spirit',w:{arts:4,media:1}},{e:'🗣️',t:'Meeting people, having deep conversations',s:'Social intelligence',w:{psych:2,business:2,law:2}}]},
+  { q:'Your friends would describe you as:',
+    sub:'Be honest — pick the truest description',
+    opts:[{e:'🧠',t:'The logical one who always has a solution',s:'Analytical thinker',w:{sw:2,ds:2,law:2}},{e:'💛',t:'The caring one people come to for advice',s:'Empathetic helper',w:{medicine:2,psych:3,teaching:2}},{e:'🔥',t:'The ambitious one who talks about big plans',s:'Driven achiever',w:{business:3,govt:2}},{e:'🌈',t:'The creative one with unusual ideas',s:'Divergent thinker',w:{arts:3,media:2,sw:1}}]},
+  { q:'What makes you angrier than anything?',
+    sub:'Strong emotions often point to deeper purpose',
+    opts:[{e:'💔',t:'People suffering from preventable illness',s:'Health injustice',w:{medicine:3,psych:2,govt:1}},{e:'⚖️',t:'Innocent people being treated unfairly',s:'Injustice',w:{law:4,govt:2}},{e:'🌍',t:'Corruption and poor governance ruining lives',s:'Civic frustration',w:{govt:4,law:2}},{e:'🛑',t:'Great ideas failing due to poor execution',s:'Efficiency frustration',w:{business:3,sw:2}}]},
+  { q:'Which phrase describes your work style best?',
+    opts:[{e:'⚡',t:'I ship fast and iterate — done is better than perfect',s:'Speed-oriented',w:{sw:3,business:2}},{e:'🎯',t:'I think deeply before I act — precision matters',s:'Precision-oriented',w:{law:2,science:2,ds:2}},{e:'🤝',t:'I work best when I\'m collaborating with others',s:'Team-player',w:{teaching:2,psych:2,business:1}},{e:'🔥',t:'I take full ownership — it\'s all on me',s:'Ownership mindset',w:{govt:2,business:3,sw:2}}]},
+  { q:'If you could instantly master one skill, what would it be?',
+    sub:'',
+    opts:[{e:'🧮',t:'Writing code that can solve any problem',s:'Programming mastery',w:{sw:5,ds:2}},{e:'🗣️',t:'Persuading anyone of anything I believe',s:'Oratory',w:{law:4,media:2,govt:2}},{e:'🔬',t:'Understanding how any biological system works',s:'Life sciences mastery',w:{medicine:3,science:3}},{e:'📊',t:'Reading financial statements and markets instantly',s:'Financial acumen',w:{business:4,ds:1}}]},
+];
+// General questions for everyone
+const CAREER_WEIGHTS = {
+  'sw-eng':     { sw:5, tech:3, ds:2, arts:1 },
+  'doctor':     { medicine:5, science:2, psych:1 },
+  'ca':         { business:4, law:2, ds:1 },
+  'ux-design':  { arts:5, tech:2, sw:1 },
+  'lawyer':     { law:5, business:2, govt:1 },
+  'data-sci':   { ds:5, tech:3, sw:2, science:1 },
+  'ias':        { govt:5, law:2, teaching:1 },
+  'pilot':      { engg:3, sw:1, science:2 },
+  'psychologist':{ psych:5, medicine:1, teaching:2 },
+  'journalist': { media:5, law:1, arts:2 },
+  'architect':  { arts:4, engg:3, sw:1 },
+  'biotech':    { science:5, medicine:2, ds:1 },
+};
+
+// ════════════════════════════════════════════════════════════════
+//  APPLICATION STATE
+// ════════════════════════════════════════════════════════════════
+
+let APP = {
+  users: DB.load('users', []),
+  currentUser: DB.load('currentUser', null),
+  quizAnswers: [],
+  quizQuestions: [],
+  quizStep: 0,
+  activeCareer: null,
+  selectedGrade: null,
+  selectedInterests: [],
+  chatHistory: [],
+  chatSessionId: null,
+  activeFilter: 'All',
+  savedCareers: [],
+  quizHistory: [],
+};
+
+// Load user-specific data
+function loadUserData() {
+  if (!APP.currentUser) return;
+  APP.savedCareers = DB.load('saved_'+APP.currentUser.id, []);
+  APP.quizHistory = DB.load('quizHistory_'+APP.currentUser.id, []);
+}
+
+function saveUserData() {
+  if (!APP.currentUser) return;
+  DB.save('saved_'+APP.currentUser.id, APP.savedCareers);
+  DB.save('quizHistory_'+APP.currentUser.id, APP.quizHistory);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  AUTH FUNCTIONS
+// ════════════════════════════════════════════════════════════════
+
+function hashPassword(p) {
+  let h = 0;
+  for (let i=0; i<p.length; i++) h = (Math.imul(31,h) + p.charCodeAt(i)) | 0;
+  return h.toString(36);
+}
+
+function register(name, email, password, grade) {
+  if (APP.users.find(u => u.email === email)) return {ok:false, err:'Email already registered'};
+  const user = {
+    id: Date.now().toString(36),
+    name, email,
+    password: hashPassword(password),
+    grade: grade || '12th',
+    interests: [],
+    createdAt: new Date().toISOString(),
+    progress: {
+        profileComplete: false,
+        quizDone: false,
+        roadmapViewed: false,
+        sessionBooked: false,
+        careersExplored: [],
+        quizzesTaken: 0,
+        roadmapsCompleted: [],
+        chatMessages: 0,
+        lastActive: new Date().toISOString(),
+      },
+  };
+  APP.users.push(user);
+  DB.save('users', APP.users);
+  return {ok:true, user};
+}
+
+function login(email, password) {
+  const user = APP.users.find(u => u.email === email && u.password === hashPassword(password));
+  if (!user) return {ok:false, err:'Invalid email or password'};
+  APP.currentUser = user;
+  DB.save('currentUser', user);
+  loadUserData();
+  return {ok:true, user};
+}
+
+function logout() {
+  APP.currentUser = null;
+  DB.remove('currentUser');
+  showScreen('login');
+}
+
+function updateUser(data) {
+  if (data.progress) {
+    data.progress = Object.assign({}, APP.currentUser.progress||{}, data.progress);
+  }
+  Object.assign(APP.currentUser, data);
+  APP.currentUser.lastActive = new Date().toISOString();
+  // Recalculate overall progress %
+  const p = APP.currentUser.progress||{};
+  const steps = [p.profileComplete, p.quizDone, p.roadmapViewed, p.sessionBooked,
+    (p.careersExplored||[]).length>=3, (p.roadmapsCompleted||[]).length>=1,
+    (p.chatMessages||0)>=1, (p.quizzesTaken||0)>=2];
+  APP.currentUser.progressPct = Math.round((steps.filter(Boolean).length / steps.length)*100);
+  const idx = APP.users.findIndex(u => u.id === APP.currentUser.id);
+  if (idx >= 0) APP.users[idx] = APP.currentUser;
+  DB.save('users', APP.users);
+  DB.save('currentUser', APP.currentUser);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  SCREEN / PAGE NAVIGATION
+// ════════════════════════════════════════════════════════════════
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+name)?.classList.add('active');
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+name)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.page === name);
+  });
+  updateTopbar(name);
+}
+
+function updateTopbar(page) {
+  const titles = {
+    home:'Home', careers:'Explore Careers', quiz:'Career Quiz',
+    report:'Quiz Report', dashboard:'My Dashboard', chat:'AI Mentor',
+    counseling:'Book Counseling', profile:'My Profile', roadmap:'Career Roadmap'
+  };
+  document.getElementById('topbar-title').textContent = titles[page] || 'PathFinder';
+}
+
+function navigateTo(page, data) {
+  if (data) APP.activeCareer = data;
+  showPage(page);
+  if (page === 'careers') renderCareers();
+  if (page === 'roadmap' && APP.activeCareer) renderRoadmap(APP.activeCareer);
+  if (page === 'quiz') startQuiz();
+  if (page === 'chat') initChat();
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'profile') renderProfile();
+  if (page === 'counseling') renderCounseling();
+  window.scrollTo && window.scrollTo(0,0);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════════════════════
+
+let toastTimer;
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  ONBOARDING
+// ════════════════════════════════════════════════════════════════
+
+let onboardStep = 1;
+
+function renderOnboarding() {
+  APP.selectedGrade = APP.currentUser.grade || null;
+  APP.selectedInterests = [...(APP.currentUser.interests || [])];
+
+  // Render grades
+  const gGrid = document.getElementById('grade-grid');
+  gGrid.innerHTML = GRADES.map(g => `
+    <div class="grade-card ${APP.selectedGrade===g.id?'selected':''}" onclick="selectGrade('${g.id}',this)">
+      <div class="grade-card-emoji">${g.emoji}</div>
+      <div class="grade-card-label">${g.label}</div>
+      <div class="grade-card-sub">${g.sub}</div>
+    </div>
+  `).join('');
+
+  // Render interests
+  const iGrid = document.getElementById('interest-grid');
+  iGrid.innerHTML = INTERESTS.map(i => `
+    <div class="interest-chip ${APP.selectedInterests.includes(i.id)?'selected':''}" onclick="toggleInterest('${i.id}',this)">
+      <span class="interest-chip-emoji">${i.emoji}</span>
+      <div>
+        <div class="interest-chip-name">${i.name}</div>
+        <div class="interest-chip-count">${i.count}</div>
+      </div>
+      <div class="interest-check">${APP.selectedInterests.includes(i.id)?'✓':''}</div>
+    </div>
+  `).join('');
+
+  goToOnboardStep(1);
+}
+
+function goToOnboardStep(n) {
+  onboardStep = n;
+  document.querySelectorAll('.onboard-step').forEach((s,i) => s.classList.toggle('active', i+1===n));
+  document.querySelectorAll('.step-dot').forEach((d,i) => {
+    d.classList.remove('active','done');
+    if (i+1 < n) d.classList.add('done');
+    else if (i+1 === n) d.classList.add('active');
+  });
+}
+
+function selectGrade(id, el) {
+  APP.selectedGrade = id;
+  document.querySelectorAll('.grade-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function toggleInterest(id, el) {
+  if (APP.selectedInterests.includes(id)) {
+    APP.selectedInterests = APP.selectedInterests.filter(i => i !== id);
+    el.classList.remove('selected');
+    el.querySelector('.interest-check').textContent = '';
+  } else {
+    APP.selectedInterests.push(id);
+    el.classList.add('selected');
+    el.querySelector('.interest-check').textContent = '✓';
+  }
+  document.getElementById('interest-count').textContent = APP.selectedInterests.length;
+}
+
+function finishOnboarding() {
+  if (!APP.selectedGrade) { showToast('Please select your grade','error'); return; }
+  if (APP.selectedInterests.length === 0) { showToast('Please select at least one interest','error'); return; }
+  updateUser({ grade: APP.selectedGrade, interests: APP.selectedInterests });
+  updateUser({ progress: {...APP.currentUser.progress, profileComplete: true} });
+  showToast('Profile saved! Let\'s explore careers 🚀','success');
+  showScreen('app');
+  navigateTo('careers');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  CAREERS
+// ════════════════════════════════════════════════════════════════
+
+const FIELDS = ['All', 'Technology', 'Healthcare', 'Finance', 'Design & Creative', 'Law', 'Government', 'Aviation', 'Mental Health', 'Media & Communication', 'Science & Research', 'Design & Engineering'];
+
+function renderCareers(filter) {
+  if (filter !== undefined) APP.activeFilter = filter;
+
+  // Filter chips
+  const fc = document.getElementById('field-chips');
+  fc.innerHTML = FIELDS.map(f =>
+    `<button class="filter-chip ${APP.activeFilter===f?'active':''}" onclick="renderCareers('${f}')">${f}</button>`
+  ).join('');
+
+  let list = CAREERS;
+  if (APP.activeFilter !== 'All') list = list.filter(c => c.field === APP.activeFilter);
+
+  // Search
+  const q = document.getElementById('search-input').value.toLowerCase();
+  if (q) list = list.filter(c => c.title.toLowerCase().includes(q) || c.field.toLowerCase().includes(q) || c.tags.some(t=>t.toLowerCase().includes(q)));
+
+  const grid = document.getElementById('careers-grid');
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">🔍</div><p>No careers found. Try a different filter or search.</p></div>`;
+    return;
+  }
+  grid.innerHTML = list.map(c => `
+    <div class="career-card fade-in" style="--cc-color:${c.color}" onclick="openCareer('${c.id}')">
+      <div class="cc-top">
+        <div class="cc-emoji">${c.emoji}</div>
+        <span class="cc-demand demand-${c.demand}">${c.demandLabel}</span>
+      </div>
+      <div class="cc-title">${c.title}</div>
+      <div class="cc-field">${c.field}</div>
+      <div class="cc-tags">${c.tags.map(t=>`<span class="cc-tag">${t}</span>`).join('')}</div>
+      <div class="cc-footer">
+        <span class="cc-salary">${c.salary}</span>
+        <span class="cc-arrow">→</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openCareer(id) {
+  const career = CAREERS.find(c=>c.id===id);
+  if (!career) return;
+  APP.activeCareer = career;
+  // Track progress
+  const explored = [...new Set([...(APP.currentUser.progress.careersExplored||[]), id])];
+  const completed = [...new Set([...(APP.currentUser.progress.roadmapsCompleted||[]), id])];
+  updateUser({ progress: {
+    roadmapViewed: true,
+    careersExplored: explored,
+    roadmapsCompleted: completed,
+  }});
+  document.getElementById('nav-report').style.display = APP.quizHistory && APP.quizHistory.length>0 ? 'flex':'none';
+  navigateTo('roadmap');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  ROADMAP
+// ════════════════════════════════════════════════════════════════
+
+let activeRtab = 'timeline';
+
+function renderRoadmap(c) {
+  if (!c) return;
+  const r = c.roadmap;
+  const isSaved = APP.savedCareers.includes(c.id);
+
+  document.getElementById('rh-emoji').textContent = c.emoji;
+  document.getElementById('rh-title').textContent = c.title;
+  document.getElementById('rh-desc').textContent = c.desc;
+  document.getElementById('rh-salary').innerHTML = `<span>Salary:</span> <strong>${c.salary}</strong>`;
+  document.getElementById('rh-demand').innerHTML = `<span>Demand:</span> <strong>${c.demandLabel}</strong>`;
+  document.getElementById('rh-field').innerHTML = `<span>Field:</span> <strong>${c.field}</strong>`;
+  document.getElementById('rh-overview').textContent = r.overview;
+
+  const saveBtn = document.getElementById('btn-save');
+  saveBtn.className = 'btn-save' + (isSaved?' saved':'');
+  saveBtn.innerHTML = isSaved ? '✓ Saved' : '♡ Save Career';
+
+  renderTimeline(r);
+  renderSkills(r);
+  renderExams(r);
+  renderCourses(r);
+  renderJobs(r);
+  switchRtab('timeline');
+}
+
+function switchRtab(tab) {
+  activeRtab = tab;
+  document.querySelectorAll('.rtab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.rtab-panel').forEach(p => p.classList.toggle('active', p.id === 'rtp-'+tab));
+}
+
+function renderTimeline(r) {
+  document.getElementById('rtp-timeline').innerHTML = `
+    <div class="section-hdr"><h2>Career Roadmap Timeline</h2></div>
+    <div class="timeline">
+      ${r.phases.map(phase => `
+        <div class="tl-phase">
+          <div class="tl-phase-label">${phase.phase}</div>
+          ${phase.items.map(item => `
+            <div class="tl-item">
+              <div class="tl-dot"></div>
+              <div class="tl-card"><h4>${item.title}</h4><p>${item.desc}</p></div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderSkills(r) {
+  document.getElementById('rtp-skills').innerHTML = `
+    <div class="section-hdr"><h2>Core Skills Required</h2></div>
+    <div class="skills-grid">
+      ${r.skills.map(s => `
+        <div class="skill-card">
+          <div class="skill-name">${s.name}</div>
+          <div class="skill-bar"><div class="skill-fill" style="width:${s.level}%"></div></div>
+          <div class="skill-level">${s.level}%</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderExams(r) {
+  document.getElementById('rtp-exams').innerHTML = `
+    <div class="section-hdr"><h2>Key Exams & Certifications</h2></div>
+    <div class="exams-list">
+      ${r.exams.map(e => `
+        <div class="exam-card">
+          <div class="exam-left"><h4>${e.name}</h4><p>${e.type}</p></div>
+          <span class="exam-badge" style="background:${e.bc};color:${e.tc}">${e.badge}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderCourses(r) {
+  document.getElementById('rtp-courses').innerHTML = `
+    <div class="section-hdr"><h2>Courses & Learning Paths</h2></div>
+    <div class="courses-grid">
+      ${r.courses.map(c => `
+        <div class="course-card">
+          <span class="course-type" style="background:${c.type==='Online'?'rgba(0,229,160,0.1)':'rgba(124,109,250,0.1)'};color:${c.type==='Online'?'#00e5a0':'#b8adff'}">${c.type}</span>
+          <div class="course-name">${c.name}</div>
+          <div class="course-provider">${c.provider}</div>
+          <div class="course-meta">
+            <span>⏱ ${c.duration}</span>
+            <span>💰 ${c.cost}</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderJobs(r) {
+  document.getElementById('rtp-jobs').innerHTML = `
+    <div class="section-hdr"><h2>Job Roles & Salary</h2></div>
+    <div class="jobs-grid">
+      ${r.jobs.map(j => `
+        <div class="job-card">
+          <div class="job-title">${j.title}</div>
+          <div class="job-salary">${j.salary}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function toggleSaveCareer() {
+  if (!APP.activeCareer) return;
+  const id = APP.activeCareer.id;
+  if (APP.savedCareers.includes(id)) {
+    APP.savedCareers = APP.savedCareers.filter(i=>i!==id);
+    showToast('Career removed from saved');
+  } else {
+    APP.savedCareers.push(id);
+    showToast('Career saved! ✓','success');
+  }
+  saveUserData();
+  const btn = document.getElementById('btn-save');
+  btn.className = 'btn-save' + (APP.savedCareers.includes(id)?' saved':'');
+  btn.innerHTML = APP.savedCareers.includes(id) ? '✓ Saved' : '♡ Save Career';
+}
+
+// ════════════════════════════════════════════════════════════════
+//  QUIZ
+// ════════════════════════════════════════════════════════════════
+
+let selectedOpt = -1;
+
+function startQuiz() {
+  // Build question set from selected interests
+  const userInterests = APP.currentUser.interests || [];
+  let qs = [...GENERAL_QUESTIONS];
+  userInterests.forEach(int => {
+    if (QUIZ_QUESTIONS[int]) qs = [...qs, ...QUIZ_QUESTIONS[int]];
+  });
+  // Shuffle and limit to 10 questions
+  qs = qs.sort(()=>Math.random()-0.5).slice(0,10);
+  APP.quizQuestions = qs;
+  APP.quizAnswers = [];
+  APP.quizStep = 0;
+  selectedOpt = -1;
+  renderQuizStep();
+}
+
+function renderQuizStep() {
+  const total = APP.quizQuestions.length;
+  const step = APP.quizStep;
+  if (step >= total) { submitQuiz(); return; }
+
+  const q = APP.quizQuestions[step];
+  const pct = Math.round((step/total)*100);
+  selectedOpt = -1;
+
+  document.getElementById('quiz-wrap').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div style="font-size:12px;color:var(--text3)">Based on: ${(APP.currentUser.interests||[]).map(i=>{const x=INTERESTS.find(t=>t.id===i);return x?x.emoji:''}).join(' ')}</div>
+      <div style="font-size:12px;color:var(--text3)">${pct}% complete</div>
+    </div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${pct}%"></div></div>
+    <div class="quiz-progress-text" style="margin-bottom:36px"><span style="color:var(--accent2);font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase">Question ${step+1} of ${total}</span></div>
+    <div class="quiz-q-num">Question ${step+1}</div>
+    <div class="quiz-q-text">${q.q}</div>
+    ${q.sub?`<div class="quiz-q-sub">${q.sub}</div>`:''}
+    <div class="quiz-options">
+      ${q.opts.map((o,i)=>`
+        <button class="quiz-opt" id="qopt-${i}" onclick="selectQuizOpt(${i})">
+          <span class="quiz-opt-emoji">${o.e}</span>
+          <div><div class="quiz-opt-text">${o.t}</div><div class="quiz-opt-sub">${o.s}</div></div>
+          <div class="quiz-opt-radio"></div>
+        </button>
+      `).join('')}
+    </div>
+    <div class="quiz-nav">
+      ${step>0?`<button class="btn-back" onclick="quizBack()">← Back</button>`:'<div></div>'}
+      <button class="btn-next" id="quiz-next-btn" onclick="quizNext()">
+        ${step===total-1?'See My Results →':'Next Question →'}
+      </button>
+    </div>
+  `;
+}
+
+function selectQuizOpt(i) {
+  selectedOpt = i;
+  document.querySelectorAll('.quiz-opt').forEach((el,idx)=>{el.classList.toggle('selected',idx===i);});
+  document.getElementById('quiz-next-btn').classList.add('enabled');
+}
+
+function quizNext() {
+  if (selectedOpt < 0) return;
+  APP.quizAnswers.push({q: APP.quizStep, a: selectedOpt});
+  APP.quizStep++;
+  renderQuizStep();
+}
+
+function quizBack() {
+  if (APP.quizStep > 0) {
+    APP.quizStep--;
+    APP.quizAnswers.pop();
+    renderQuizStep();
+  }
+}
+
+function submitQuiz() {
+  // Calculate dimension scores
+  const scores = {};
+  APP.quizAnswers.forEach(({q,a}) => {
+    const question = APP.quizQuestions[q];
+    const weights = question.opts[a]?.w || {};
+    Object.entries(weights).forEach(([dim,val]) => { scores[dim] = (scores[dim]||0)+val; });
+  });
+
+  // Match careers
+  const total = Object.values(scores).reduce((s,v)=>s+v,0)||1;
+  const matched = CAREERS.map(career => {
+    const cw = CAREER_WEIGHTS[career.id]||{};
+    const raw = Object.entries(cw).reduce((s,[d,w])=>s+(scores[d]||0)*w,0);
+    const maxPossible = Object.values(cw).reduce((s,w)=>s+w,0)*5;
+    const pct = Math.min(98, Math.round((raw/Math.max(maxPossible,1))*100)+Math.floor(Math.random()*8));
+    return {id:career.id, pct};
+  }).sort((a,b)=>b.pct-a.pct).slice(0,5);
+
+  // Save to history
+  const session = { id:Date.now(), date:new Date().toLocaleDateString('en-IN'), scores, matched, interests:APP.currentUser.interests };
+  APP.quizHistory.unshift(session);
+  if (APP.quizHistory.length>10) APP.quizHistory.pop();
+  saveUserData();
+  const qCount = (APP.currentUser.progress.quizzesTaken||0)+1;
+  updateUser({ progress:{quizDone:true, quizzesTaken:qCount} });
+  document.getElementById('nav-report').style.display='flex';
+
+  // Store for report
+  APP.lastQuizResult = {scores, matched};
+  navigateTo('report');
+  renderReport({scores, matched});
+}
+
+// ════════════════════════════════════════════════════════════════
+//  REPORT
+// ════════════════════════════════════════════════════════════════
+
+const MATCH_COLORS = ['#7c6dfa','#00d4b4','#f5a623'];
+const RANK_LABELS = ['🥇 Top Match','🥈 Great Fit','🥉 Strong Match'];
+
+function renderReport({scores, matched}) {
+  const top3 = matched.slice(0,3).map(m => ({...CAREERS.find(c=>c.id===m.id), pct:m.pct})).filter(Boolean);
+  const allDims = ['sw','tech','medicine','law','business','arts','science','govt','media','sports','teaching','psych','engg','ds'];
+  const dimLabels = {sw:'Software Dev',tech:'Technology',medicine:'Healthcare',law:'Legal',business:'Business',arts:'Creative Design',science:'Research',govt:'Public Service',media:'Media & Comm',sports:'Sports',teaching:'Education',psych:'Psychology',engg:'Engineering',ds:'Data Science'};
+
+  document.getElementById('report-wrap').innerHTML = `
+    <div class="report-hero fade-in">
+      <div class="report-celebration">🎉</div>
+      <h1>Your Career Report</h1>
+      <p>Based on your ${APP.quizQuestions.length}-question assessment, here are your personalised career matches</p>
+    </div>
+    <div class="match-cards">
+      ${top3.map((c,i)=>`
+        <div class="match-card fade-in" style="border-color:${MATCH_COLORS[i]}22">
+          <div class="match-rank" style="color:${MATCH_COLORS[i]}">${RANK_LABELS[i]}</div>
+          <div class="match-emoji">${c.emoji}</div>
+          <div class="match-title">${c.title}</div>
+          <div class="match-field">${c.field}</div>
+          <div class="match-pct-bar"><div class="match-pct-fill" style="width:${c.pct}%;background:${MATCH_COLORS[i]}"></div></div>
+          <div class="match-pct-text">${c.pct}% match with your profile</div>
+          <button class="btn-view-roadmap" onclick="openCareer('${c.id}')">View Full Roadmap →</button>
+        </div>
+      `).join('')}
+    </div>
+    <div class="traits-card">
+      <h2>Your Personality Profile</h2>
+      <p>How your aptitude maps across different career dimensions</p>
+      <div class="traits-grid">
+        ${Object.entries(scores).filter(([d])=>allDims.includes(d)).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([d,v])=>{
+          const maxV = Math.max(...Object.values(scores),1);
+          const pct = Math.min(97, Math.round((v/maxV)*100));
+          return `
+            <div class="trait-row">
+              <div class="trait-label"><span>${dimLabels[d]||d}</span><strong>${pct}%</strong></div>
+              <div class="trait-bar"><div class="trait-fill" style="width:${pct}%;background:linear-gradient(to right,var(--accent),var(--teal))"></div></div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <button class="btn-primary" style="width:auto;padding:12px 28px" onclick="navigateTo(&apos;careers&apos;)">Explore All Careers →</button>
+      <button class="btn-secondary" onclick="navigateTo('chat')">Ask AI Mentor</button>
+      <button class="btn-secondary" onclick="navigateTo(&apos;quiz&apos;)">Retake Quiz</button>
+      <button class="btn-secondary" onclick="navigateTo('counseling')">Book Counseling</button>
+    </div>
+  `;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  DASHBOARD
+// ════════════════════════════════════════════════════════════════
+
+function renderDashboard() {
+  const u = APP.currentUser;
+  const initials = u.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  const gradeObj = GRADES.find(g=>g.id===u.grade)||{label:u.grade||'—'};
+  const pPct = u.progressPct||0;
+
+  document.getElementById('dash-avatar').textContent = initials;
+  document.getElementById('topbar-avatar').textContent = initials;
+  document.getElementById('dash-name').textContent = `Welcome back, ${u.name.split(' ')[0]}! 👋`;
+  document.getElementById('dash-grade').textContent = `${gradeObj.label} · ${(u.interests||[]).length} interests selected`;
+  document.getElementById('dash-quizzes').textContent = APP.quizHistory.length;
+  document.getElementById('dash-saved').textContent = APP.savedCareers.length;
+  document.getElementById('dash-join').textContent = new Date(u.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+
+  // ── PROGRESS RING ──────────────────────────────────────────
+  const prog = u.progress||{};
+  const milestones = [
+    {key:'profileComplete',  label:'Profile Complete',       sub:'Name, grade & interests saved',          done:!!prog.profileComplete,  icon:'👤',  action:null},
+    {key:'quizDone',         label:'First Career Quiz',      sub:'Discover your matched careers',          done:!!prog.quizDone,          icon:'🎯',  action:"navigateTo('quiz')"},
+    {key:'roadmapViewed',    label:'Roadmap Explored',       sub:'Viewed a career in full detail',         done:!!prog.roadmapViewed,     icon:'🗺️',  action:"navigateTo('careers')"},
+    {key:'careers3',         label:'3 Careers Explored',     sub:`${(prog.careersExplored||[]).length}/3 explored`, done:(prog.careersExplored||[]).length>=3, icon:'🔭', action:"navigateTo('careers')"},
+    {key:'quiz2',            label:'2 Quizzes Taken',        sub:`${prog.quizzesTaken||0}/2 quizzes`,     done:(prog.quizzesTaken||0)>=2, icon:'🎯',  action:"navigateTo('quiz')"},
+    {key:'chatted',          label:'Asked AI Mentor',        sub:'Had your first AI conversation',         done:(prog.chatMessages||0)>=1, icon:'🤖',  action:"navigateTo('chat')"},
+    {key:'sessionBooked',    label:'Session Booked',         sub:'Booked a counseling session',            done:!!prog.sessionBooked,     icon:'📅',  action:"navigateTo('counseling')"},
+    {key:'saved1',           label:'Career Saved',           sub:`${APP.savedCareers.length} career saved`, done:APP.savedCareers.length>=1, icon:'💾', action:"navigateTo('careers')"},
+  ];
+  const doneCt = milestones.filter(m=>m.done).length;
+  const pctCalc = Math.round((doneCt/milestones.length)*100);
+
+  document.getElementById('milestones-list').innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;padding:16px;background:var(--bg3);border-radius:14px">
+      <div style="position:relative;width:64px;height:64px;flex-shrink:0">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="27" fill="none" stroke="var(--border)" stroke-width="5"/>
+          <circle cx="32" cy="32" r="27" fill="none" stroke="${pctCalc>=100?'#00e5a0':'#7c6dfa'}" stroke-width="5"
+            stroke-dasharray="${2*Math.PI*27}" stroke-dashoffset="${2*Math.PI*27*(1-pctCalc/100)}"
+            stroke-linecap="round" transform="rotate(-90 32 32)"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Clash Display,sans-serif;font-size:13px;font-weight:700">${pctCalc}%</div>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:3px">Journey Progress</div>
+        <div style="font-size:13px;color:var(--text2)">${doneCt} of ${milestones.length} milestones completed</div>
+        ${pctCalc===100?'<div style="font-size:12px;color:var(--green);margin-top:4px">🎉 All milestones done!</div>':''}
+      </div>
+    </div>
+    ${milestones.map(m=>`
+      <div class="progress-milestone" ${m.action&&!m.done?`onclick="${m.action}" style="cursor:pointer"`:''}>
+        <div class="pm-icon ${m.done?'pm-done':'pm-todo'}">${m.icon}</div>
+        <div>
+          <div class="pm-label">${m.label}</div>
+          <div class="pm-sub">${m.sub}</div>
+        </div>
+        <div class="pm-check">${m.done?'✅':m.action?'<span style="font-size:12px;color:var(--accent2)">Go →</span>':'⬜'}</div>
+      </div>
+    `).join('')}
+  `;
+
+  // ── CAREER STATS MINI CARDS ────────────────────────────────
+  const explCount = (prog.careersExplored||[]).length;
+  const roadCount = (prog.roadmapsCompleted||[]).length;
+
+  // ── SAVED CAREERS ──────────────────────────────────────────
+  const savedList = CAREERS.filter(c=>APP.savedCareers.includes(c.id)).slice(0,5);
+  document.getElementById('saved-list').innerHTML = savedList.length ? savedList.map(c=>`
+    <div class="saved-mini" onclick="openCareer('${c.id}')">
+      <span class="saved-mini-emoji">${c.emoji}</span>
+      <div><div class="saved-mini-title">${c.title}</div><div class="saved-mini-field">${c.field}</div></div>
+      <span class="saved-mini-arr" style="color:var(--accent2)">→</span>
+    </div>
+  `).join('') : '<div class="empty-state" style="padding:20px"><div class="empty-state-icon" style="font-size:28px">💾</div><p style="font-size:13px">No saved careers yet.<br><a href="#" onclick="navigateTo(&apos;careers&apos;)" style="color:var(--accent2)">Explore careers →</a></p></div>';
+
+  // ── QUIZ HISTORY ───────────────────────────────────────────
+  document.getElementById('quiz-history').innerHTML = APP.quizHistory.length ? APP.quizHistory.slice(0,4).map((s,i)=>{
+    const top = s.matched?.[0];
+    const topCareer = top ? CAREERS.find(c=>c.id===top.id) : null;
+    return `
+      <div class="qh-item" onclick="navigateTo('report')" style="cursor:pointer">
+        <div class="qh-icon">🎯</div>
+        <div>
+          <div class="qh-title">Career Quiz #${APP.quizHistory.length - i}</div>
+          <div class="qh-date">${s.date} · ${(s.interests||[]).length} interests</div>
+        </div>
+        ${topCareer?`<div class="qh-match">${topCareer.emoji} ${top.pct}% match</div>`:''}
+      </div>
+    `;
+  }).join('') : '<div style="text-align:center;padding:20px;color:var(--text2);font-size:14px">No quiz taken yet.<br><button onclick="navigateTo(&apos;quiz&apos;)" style="color:var(--accent2);background:none;border:none;cursor:pointer;font-family:inherit;font-size:14px;margin-top:8px">Take the quiz now →</button></div>';
+
+  // ── RECENTLY EXPLORED ──────────────────────────────────────
+  const recentIds = (prog.careersExplored||[]).slice(-4).reverse();
+  const recentEl = document.getElementById('recently-explored');
+  if (recentEl) {
+    const recent = recentIds.map(id=>CAREERS.find(c=>c.id===id)).filter(Boolean);
+    recentEl.innerHTML = recent.length ? recent.map(c=>`
+      <div class="saved-mini" onclick="openCareer('${c.id}')">
+        <span class="saved-mini-emoji">${c.emoji}</span>
+        <div><div class="saved-mini-title">${c.title}</div><div class="saved-mini-field">${c.salary}</div></div>
+        <span style="font-size:11px;color:var(--text3)">${c.demandLabel}</span>
+      </div>
+    `).join('') : '<div style="text-align:center;padding:16px;font-size:13px;color:var(--text2)">No careers explored yet</div>';
+  }
+
+  // ── ACTIVITY STREAK ────────────────────────────────────────
+  const actEl = document.getElementById('activity-summary');
+  if (actEl) {
+    const lastActive = u.lastActive ? new Date(u.lastActive).toLocaleDateString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : 'Never';
+    actEl.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        ${[
+          {label:'Careers Explored', val:explCount, icon:'🔭', color:'var(--accent2)'},
+          {label:'Roadmaps Viewed',  val:roadCount, icon:'🗺️', color:'var(--teal)'},
+          {label:'Quizzes Taken',    val:prog.quizzesTaken||0, icon:'🎯', color:'var(--amber)'},
+          {label:'AI Messages Sent', val:prog.chatMessages||0, icon:'🤖', color:'var(--green)'},
+        ].map(s=>`
+          <div style="background:var(--bg3);border-radius:12px;padding:14px 16px">
+            <div style="font-size:20px;margin-bottom:6px">${s.icon}</div>
+            <div style="font-family:Clash Display,sans-serif;font-size:22px;font-weight:700;color:${s.color}">${s.val}</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px">${s.label}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--text3);text-align:right">Last active: ${lastActive}</div>
+    `;
+  }
+}
+
+function renderProfile() {
+  const u = APP.currentUser;
+  const initials = u.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('profile-avatar-big').textContent = initials;
+  document.getElementById('profile-name-input').value = u.name || '';
+  document.getElementById('profile-email').value = u.email || '';
+  document.getElementById('profile-phone').value = u.phone || '';
+  document.getElementById('profile-city').value = u.city || '';
+  document.getElementById('profile-school').value = u.school || '';
+
+  const gradeSelect = document.getElementById('profile-grade');
+  gradeSelect.innerHTML = GRADES.map(g=>`<option value="${g.id}" ${g.id===u.grade?'selected':''}>${g.label}</option>`).join('');
+
+  // Interests
+  document.getElementById('profile-interests').innerHTML = INTERESTS.map(i=>`
+    <div class="interest-edit-chip ${(u.interests||[]).includes(i.id)?'sel':''}" onclick="toggleProfileInterest('${i.id}',this)">
+      ${i.emoji} ${i.name}
+    </div>
+  `).join('');
+}
+
+function toggleProfileInterest(id, el) {
+  el.classList.toggle('sel');
+}
+
+function saveProfile() {
+  const interests = [];
+  document.querySelectorAll('.interest-edit-chip.sel').forEach((el,i)=>{
+    const chip = INTERESTS.find(x=>el.textContent.trim().includes(x.name));
+    if (chip) interests.push(chip.id);
+  });
+  updateUser({
+    name: document.getElementById('profile-name-input').value,
+    phone: document.getElementById('profile-phone').value,
+    city: document.getElementById('profile-city').value,
+    school: document.getElementById('profile-school').value,
+    grade: document.getElementById('profile-grade').value,
+    interests,
+    progress:{...APP.currentUser.progress,profileComplete:true}
+  });
+  // Update sidebar
+  updateSidebar();
+  showToast('Profile updated successfully!','success');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  SIDEBAR UPDATE
+// ════════════════════════════════════════════════════════════════
+
+function updateSidebar() {
+  if (!APP.currentUser) return;
+  const u = APP.currentUser;
+  const initials = u.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('sidebar-avatar').textContent = initials;
+  document.getElementById('sidebar-name').textContent = u.name;
+  const gradeObj = GRADES.find(g=>g.id===u.grade)||{label:u.grade};
+  document.getElementById('sidebar-grade').textContent = gradeObj.label;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════════
+
+function init() {
+  // Search
+  document.getElementById('search-input').addEventListener('input',()=>{
+    if (document.getElementById('page-careers').classList.contains('active')) renderCareers();
+  });
+
+  // Chat input auto-resize
+  const ci = document.getElementById('chat-input');
+  ci.addEventListener('keypress',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChatMessage();} });
+  ci.addEventListener('input',()=>{ ci.style.height='auto'; ci.style.height=Math.min(ci.scrollHeight,160)+'px'; });
+
+  // Check existing session
+  if (APP.currentUser) {
+    loadUserData();
+    updateSidebar();
+    showScreen('app');
+    if (!APP.currentUser.grade || !APP.currentUser.interests || APP.currentUser.interests.length===0) {
+      showScreen('onboarding');
+      renderOnboarding();
+    } else {
+      navigateTo('careers');
+    }
+  } else {
+    showScreen('login');
+    document.getElementById('login-tab').click();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', init);
+
+</script>
+
+</body>
+</html>
