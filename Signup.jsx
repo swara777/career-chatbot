@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { signup } from './supabaseAuthController';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -19,14 +19,7 @@ const Signup = () => {
 
   const standards = ['10th', '12th', 'UG', 'Postgraduate', 'Professional'];
   const interestOptions = [
-    'Tech',
-    'Arts',
-    'Medical',
-    'Law',
-    'Finance',
-    'Engineering',
-    'Business',
-    'Science',
+    'Tech', 'Arts', 'Medical', 'Law', 'Finance', 'Engineering', 'Business', 'Science',
   ];
 
   const handleInputChange = (e) => {
@@ -82,22 +75,35 @@ const Signup = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/auth/signup`,
+      // Call Supabase signup function
+      const { user, error: signupError } = await signup(
+        formData.email,
+        formData.password,
         {
           name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          currentStandard: formData.currentStandard,
+          current_standard: formData.currentStandard,
           interests: formData.interests,
         }
       );
 
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      if (signupError) {
+        setError(signupError.message || 'Signup failed');
+        setLoading(false);
+        return;
+      }
+
+      // Store user data in localStorage
+      localStorage.setItem('user', JSON.stringify({
+        id: user.id,
+        email: user.email,
+        name: formData.name,
+        currentStandard: formData.currentStandard,
+        interests: formData.interests,
+      }));
+
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed');
+      setError(err.message || 'Signup failed');
     } finally {
       setLoading(false);
     }
@@ -177,9 +183,7 @@ const Signup = () => {
               className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#10B981] transition"
             >
               {standards.map((std) => (
-                <option key={std} value={std}>
-                  {std}
-                </option>
+                <option key={std} value={std}>{std}</option>
               ))}
             </select>
           </div>
