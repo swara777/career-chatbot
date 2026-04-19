@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { fetchUserProfileById, updateUserProfile } from './supabaseUserService';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -10,14 +10,7 @@ const Profile = () => {
   const [editData, setEditData] = useState({});
 
   const interestOptions = [
-    'Tech',
-    'Arts',
-    'Medical',
-    'Law',
-    'Finance',
-    'Engineering',
-    'Business',
-    'Science',
+    'Tech', 'Arts', 'Medical', 'Law', 'Finance', 'Engineering', 'Business', 'Science',
   ];
 
   useEffect(() => {
@@ -26,13 +19,17 @@ const Profile = () => {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const userData = localStorage.getItem('user');
+      if (!userData) {
+        navigate('/login');
+        return;
+      }
 
-      setUser(response.data.user);
-      setEditData(response.data.user);
+      const parsedUser = JSON.parse(userData);
+      const profile = await fetchUserProfileById(parsedUser.id);
+      
+      setUser(profile);
+      setEditData(profile);
     } catch (err) {
       console.error('Error fetching profile:', err);
     }
@@ -50,21 +47,18 @@ const Profile = () => {
   const handleSaveProfile = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/auth/profile`,
-        {
-          name: editData.name,
-          currentStandard: editData.currentStandard,
-          interests: editData.interests,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const userData = localStorage.getItem('user');
+      const parsedUser = JSON.parse(userData);
 
-      setUser(response.data.user);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      await updateUserProfile(parsedUser.id, {
+        name: editData.name,
+        current_standard: editData.current_standard,
+        interests: editData.interests,
+        updated_at: new Date(),
+      });
+
+      setUser(editData);
+      localStorage.setItem('user', JSON.stringify(editData));
       setIsEditing(false);
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -82,12 +76,6 @@ const Profile = () => {
       </div>
     );
   }
-
-  const progressPercentage = user.currentRoadmap
-    ? (user.currentRoadmap.progress.skillsMastered /
-        user.currentRoadmap.progress.totalSkills) *
-      100
-    : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0F172A] via-slate-900 to-[#0F172A] px-6 py-12">
@@ -118,12 +106,12 @@ const Profile = () => {
             <div className="space-y-4">
               <div>
                 <p className="text-gray-400 text-sm">Academic Standard</p>
-                <p className="text-white font-semibold">{user.currentStandard}</p>
+                <p className="text-white font-semibold">{user.current_standard}</p>
               </div>
               <div>
                 <p className="text-gray-400 text-sm">Interests</p>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {user.interests.map((interest) => (
+                  {user.interests?.map((interest) => (
                     <span
                       key={interest}
                       className="px-3 py-1 bg-[#10B981]/20 text-[#10B981] rounded-full text-sm"
@@ -148,8 +136,8 @@ const Profile = () => {
               <div>
                 <label className="text-gray-400 text-sm block mb-2">Academic Standard</label>
                 <select
-                  value={editData.currentStandard}
-                  onChange={(e) => setEditData({ ...editData, currentStandard: e.target.value })}
+                  value={editData.current_standard}
+                  onChange={(e) => setEditData({ ...editData, current_standard: e.target.value })}
                   className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#10B981]"
                 >
                   <option value="10th">10th</option>
@@ -167,7 +155,7 @@ const Profile = () => {
                       key={interest}
                       onClick={() => handleInterestToggle(interest)}
                       className={`px-3 py-2 rounded-lg text-sm transition ${
-                        editData.interests.includes(interest)
+                        editData.interests?.includes(interest)
                           ? 'bg-[#10B981] text-white'
                           : 'bg-white/10 text-gray-300 border border-white/20'
                       }`}
@@ -187,51 +175,6 @@ const Profile = () => {
             </div>
           )}
         </div>
-
-        {/* Progress Tracker */}
-        {user.currentRoadmap && (
-          <div className="backdrop-blur-md bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl p-8 mb-8">
-            <h2 className="text-2xl font-bold text-white mb-6">Current Roadmap</h2>
-            <div className="mb-6">
-              <p className="text-gray-300 mb-2">{user.currentRoadmap.careerTitle}</p>
-              <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-[#10B981] to-[#059669] rounded-full transition-all"
-                  style={{ width: `${progressPercentage}%` }}
-                ></div>
-              </div>
-              <p className="text-[#10B981] font-semibold mt-2">
-                {user.currentRoadmap.progress.skillsMastered} of{' '}
-                {user.currentRoadmap.progress.totalSkills} skills mastered
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Quiz History */}
-        {user.quizHistory && user.quizHistory.length > 0 && (
-          <div className="backdrop-blur-md bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-white mb-6">Quiz History</h2>
-            <div className="space-y-4">
-              {user.quizHistory.map((quiz, idx) => (
-                <div
-                  key={idx}
-                  className="bg-white/10 border border-white/20 rounded-lg p-4"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-white font-semibold">{quiz.results.topMatch}</p>
-                      <p className="text-gray-400 text-sm">
-                        {new Date(quiz.date).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <p className="text-[#10B981] font-bold">{quiz.results.matchScore}%</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
